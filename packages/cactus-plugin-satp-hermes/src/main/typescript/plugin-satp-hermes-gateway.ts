@@ -81,6 +81,8 @@ import {
 } from "@hyperledger/cactus-cmd-api-server";
 import { AddressInfo } from "node:net";
 import { createMigrationSource } from "./database/knex-migration-source";
+import { ExtensionsManager } from "./extensions/extensions-manager";
+import { ExtensionType } from "./extensions/extensions-utils";
 import { MonitorService } from "./services/monitoring/monitor";
 import { context, SpanStatusCode } from "@opentelemetry/api";
 import { SATPManager } from "./services/gateway/satp-manager";
@@ -100,6 +102,7 @@ export interface SATPGatewayConfig extends ICactusPluginOptions {
   monitorService?: MonitorService;
   claimFormat?: string;
   ontologyPath?: string;
+  extensions?: ExtensionType[];
   pluginRegistry: PluginRegistry;
   logLevel?: LogLevelDesc;
 }
@@ -124,6 +127,8 @@ export class SATPGateway implements IPluginWebService, ICactusPlugin {
   private connectedDLTs: NetworkId[];
   private gatewayOrchestrator?: GatewayOrchestrator;
   private SATPCCManager?: SATPCrossChainManager;
+
+  private extensionsManager?: ExtensionsManager;
 
   private BLODispatcher?: BLODispatcher;
   private GOLApplication?: Express;
@@ -258,6 +263,11 @@ export class SATPGateway implements IPluginWebService, ICactusPlugin {
         };
 
         this.SATPCCManager = new SATPCrossChainManager(SATPCCManagerOptions);
+
+        this.extensionsManager = new ExtensionsManager({
+          logLevel: this.config.logLevel,
+          extensions: this.config.extensions || [],
+        });
 
         if (!this.SATPCCManager) {
           throw new Error("SATPCCManager is not defined");
@@ -582,7 +592,13 @@ export class SATPGateway implements IPluginWebService, ICactusPlugin {
           return this.OApiServer;
         }
 
-        const pluginRegistry = new PluginRegistry({ plugins: [this] });
+        this.logger.info("Loading all gateway extensions (Cacti Plugins)...");
+        const extensions =
+          this.extensionsManager?.getExtensions().values() || [];
+
+        const pluginRegistry = new PluginRegistry({
+          plugins: [this, ...extensions],
+        });
 
         if (!this.config.gid) {
           throw new Error("GatewayIdentity is not defined");

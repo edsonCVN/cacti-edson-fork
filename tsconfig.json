@@ -23,6 +23,9 @@
       "path": "./packages/cactus-plugin-bungee-hermes/tsconfig.json"
     },
     {
+      "path": "./packages/cactus-plugin-carbon-credit/tsconfig.json"
+    },
+    {
       "path": "./packages/cactus-plugin-ccmodel-hephaestus/tsconfig.json"
     },
     {
@@ -180,6 +183,9 @@
     },
     {
       "path": "./packages/cactus-plugin-satp-hermes/tsconfig.json"
+    },
+    {
+      "path": "./packages/cactus-plugin-carbon-credit/tsconfig.json"
     },
     {
       "path": "./examples/cactus-example-cbdc-bridging-backend/tsconfig.json"
