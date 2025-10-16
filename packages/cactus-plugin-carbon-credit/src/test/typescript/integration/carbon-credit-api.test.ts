@@ -48,7 +48,7 @@ const pluginOptions: IPluginCarbonCreditOptions = {
     ethAccount: "0xb5271339c211cC1EEeD30a2f9f447063a5faD1F0",
     secret: "739ed7c97109f28bc8f13b354b30bbd01a47061be7676c3c3934aa4a56540de4",
   } as Web3SigningCredentialPrivateKeyHex,
-  networkConfig: [
+  networksConfig: [
     {
       rpcUrl: "https://polygon-mainnet.g.alchemy.com/v2/" + ALCHEMY_API_KEY,
       network: Network.Polygon,

@@ -7,12 +7,17 @@ import {
 
 import { ExtensionType } from "./extensions-utils";
 import { ICactusPlugin } from "@hyperledger/cactus-core-api";
-import { PluginCarbonCredit } from "@hyperledger/cactus-plugin-carbon-credit";
+import {
+  PluginCarbonCredit,
+  type Network,
+  type NetworkConfig,
+} from "@hyperledger/cactus-plugin-carbon-credit";
 import { Web3SigningCredentialType } from "@hyperledger/cactus-plugin-ledger-connector-ethereum";
+import { ExtensionConfig } from "../services/validation/config-validating-functions/validate-extensions";
 
 export interface IExtensionsManagerOptions {
   logLevel?: LogLevelDesc;
-  extensions: ExtensionType[];
+  extensionsConfig: ExtensionConfig[];
 }
 
 export class ExtensionsManager {
@@ -36,7 +41,7 @@ export class ExtensionsManager {
     this.logger = LoggerProvider.getOrCreate(loggerOptions);
     this.logger.info(`${fnTag}: Initializing ExtensionsManager`);
 
-    options.extensions.forEach((extension) => {
+    options.extensionsConfig.forEach((extension) => {
       this.addExtension(extension);
     });
   }
@@ -45,27 +50,40 @@ export class ExtensionsManager {
     return this.extensions;
   }
 
-  public addExtension(extension: ExtensionType): void {
+  public addExtension(extension: ExtensionConfig): void {
     const fnTag = `${ExtensionsManager.CLASS_NAME}#addExtension()`;
     if (!extension) {
       throw new Error(`${fnTag}: Extension is required`);
     }
 
-    switch (extension) {
+    switch (extension.name) {
       case ExtensionType.CARBON_CREDIT:
         this.logger.info(`${fnTag}: Adding Carbon Credit extension`);
 
         const plugin = new PluginCarbonCredit({
           instanceId: "carbon-credit-plugin",
+          networksConfig: extension.networksConfig.map((net) => ({
+            network: net.network_name as Network,
+            rpcUrl: net.rpc_url,
+          })) as NetworkConfig[],
           signingCredential: {
             type: Web3SigningCredentialType.PrivateKeyHex,
-            ethAccount: "0xYourEthereumAccount",
-            secret: "0xYourPrivateKeyHex",
+            ethAccount: extension.signingCredential.ethAccount,
+            secret: extension.signingCredential.secret,
           },
           logLevel: this.logLevel,
         });
 
         this.extensions.set(ExtensionType.CARBON_CREDIT, plugin);
+
+        this.logger.debug(
+          `${fnTag}: Added Carbon Credit extension with config: ${JSON.stringify(
+            extension,
+            null,
+            2,
+          )}`,
+        );
+        break;
       case ExtensionType.DIGITAL_PRODUCT_PASSPORT:
         this.logger.info(`${fnTag}: Adding Digital Product Passport extension`);
         break;

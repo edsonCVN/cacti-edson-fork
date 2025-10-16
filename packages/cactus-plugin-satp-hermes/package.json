@@ -66,8 +66,8 @@
   ],
   "scripts": {
     "build": "run-s codegen tsc",
-    "build:bundle": "ncc build ./dist/lib/main/typescript/plugin-satp-hermes-gateway-cli.js --out=./dist/bundle/ncc/ --external=fabric-common --external=bufferutil --external=pg-cloudflare",
-    "build:bundle:prod": "ncc build ./dist/lib/main/typescript/plugin-satp-hermes-gateway-cli.js --minify --out=./dist/bundle/ncc/ --external=fabric-common --external=bufferutil, --external=pg-cloudflare",
+    "build:bundle": "ncc build ./dist/lib/main/typescript/plugin-satp-hermes-gateway-cli.js --out=./dist/bundle/ncc/ --external=fabric-common --external=bufferutil --external=pg-cloudflare --external=sqlite3",
+    "build:bundle:prod": "ncc build ./dist/lib/main/typescript/plugin-satp-hermes-gateway-cli.js --minify --out=./dist/bundle/ncc/ --external=fabric-common --external=bufferutil --external=pg-cloudflare --external=sqlite3",
     "build:dev:backend:postbuild": "",
     "bundle-openapi-json": "swagger-cli bundle ./src/main/yml/bol/openapi-blo.yml -o ./src/main/json/openapi-blo-bundled.json -r -t json",
     "bundle-openapi-yaml": "swagger-cli bundle ./src/main/yml/bol/openapi-blo.yml -o ./src/main/yml/bol/openapi-blo-bundled.yml -r -t yaml",

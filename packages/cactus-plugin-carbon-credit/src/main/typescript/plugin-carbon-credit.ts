@@ -49,7 +49,7 @@ import { DexAbstract } from "./dex-abstract";
 export interface IPluginCarbonCreditOptions extends ICactusPluginOptions {
   instanceId: string;
   signingCredential?: Web3SigningCredentialPrivateKeyHex;
-  networkConfig?: NetworkConfig[];
+  networksConfig?: NetworkConfig[];
   logLevel?: LogLevelDesc;
 }
 
@@ -78,10 +78,10 @@ export class PluginCarbonCredit implements ICactusPlugin, IPluginWebService {
     this.log = LoggerProvider.getOrCreate({ level, label });
 
     if (
-      this.options.networkConfig &&
-      Array.isArray(this.options.networkConfig)
+      this.options.networksConfig &&
+      Array.isArray(this.options.networksConfig)
     ) {
-      for (const cfg of this.options.networkConfig) {
+      for (const cfg of this.options.networksConfig) {
         this.providers.set(
           cfg.network,
           new ethers.providers.JsonRpcProvider(cfg.rpcUrl),

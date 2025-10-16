@@ -82,10 +82,10 @@ import {
 import { AddressInfo } from "node:net";
 import { createMigrationSource } from "./database/knex-migration-source";
 import { ExtensionsManager } from "./extensions/extensions-manager";
-import { ExtensionType } from "./extensions/extensions-utils";
 import { MonitorService } from "./services/monitoring/monitor";
 import { context, SpanStatusCode } from "@opentelemetry/api";
 import { SATPManager } from "./services/gateway/satp-manager";
+import { ExtensionConfig } from "./services/validation/config-validating-functions/validate-extensions";
 
 export interface SATPGatewayConfig extends ICactusPluginOptions {
   gid?: GatewayIdentity;
@@ -102,7 +102,7 @@ export interface SATPGatewayConfig extends ICactusPluginOptions {
   monitorService?: MonitorService;
   claimFormat?: string;
   ontologyPath?: string;
-  extensions?: ExtensionType[];
+  extensions?: ExtensionConfig[];
   pluginRegistry: PluginRegistry;
   logLevel?: LogLevelDesc;
 }
@@ -266,7 +266,7 @@ export class SATPGateway implements IPluginWebService, ICactusPlugin {
 
         this.extensionsManager = new ExtensionsManager({
           logLevel: this.config.logLevel,
-          extensions: this.config.extensions || [],
+          extensionsConfig: this.config.extensions || [],
         });
 
         if (!this.SATPCCManager) {

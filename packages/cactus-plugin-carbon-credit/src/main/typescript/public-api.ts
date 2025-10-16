@@ -5,3 +5,5 @@ export {
   IPluginCarbonCreditOptions,
   PluginCarbonCredit,
 } from "./plugin-carbon-credit";
+
+export * from "./utils";

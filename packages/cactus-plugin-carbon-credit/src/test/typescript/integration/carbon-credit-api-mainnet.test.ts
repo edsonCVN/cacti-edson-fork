@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import "jest-extended";
 import express from "express";
 import bodyParser from "body-parser";
@@ -27,9 +26,6 @@ const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY;
 if (!ALCHEMY_API_KEY) {
   throw new Error("ALCHEMY_API_KEY not set in environment");
 }
-
-let polygon_tco2s = [];
-let celo_tco2s = [];
 
 const testLogLevel: LogLevelDesc = "info";
 
@@ -63,7 +59,7 @@ describe("Carbon Credit API Integration Tests", () => {
         secret:
           "739ed7c97109f28bc8f13b354b30bbd01a47061be7676c3c3934aa4a56540de4",
       } as Web3SigningCredentialPrivateKeyHex,
-      networkConfig: [
+      networksConfig: [
         {
           rpcUrl: "https://polygon-mainnet.g.alchemy.com/v2/" + ALCHEMY_API_KEY,
           network: Network.Polygon,
@@ -97,8 +93,6 @@ describe("Carbon Credit API Integration Tests", () => {
     expect(response.status).toEqual(200);
     expect(response.data.tco2List).toBeInstanceOf(Array);
     expect(response.data.totalCount).toBeGreaterThan(0);
-
-    polygon_tco2s = response.data.tco2List;
   });
 
   test("getAvailableTCO2s endpoint returns a list of TCO2s (Celo)", async () => {
@@ -113,8 +107,6 @@ describe("Carbon Credit API Integration Tests", () => {
     expect(response.status).toEqual(200);
     expect(response.data.tco2List).toBeInstanceOf(Array);
     expect(response.data.totalCount).toBeGreaterThan(0);
-
-    celo_tco2s = response.data.tco2List;
   });
 
   test("getVCUMetadata endpoint returns metadata for a valid VCU ID (Polygon)", async () => {

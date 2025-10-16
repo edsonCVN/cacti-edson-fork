@@ -111,7 +111,7 @@ export async function launchGateway(): Promise<void> {
   logger.debug("Validating Cross Chain Config...");
   const ccConfig = await validateCCConfig(
     {
-      configValue: config.ccConfig,
+      configValue: config.ccConfig || null,
     },
     logger,
   );
