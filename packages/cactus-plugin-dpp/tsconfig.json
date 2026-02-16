@@ -17,9 +17,5 @@
   ],
   "exclude": [
   ],
-  "references": [
-    {
-      "path": "../../packages/cactus-plugin-satp-hermes/tsconfig.json"
-    },
-  ]
+  "references": []
 }

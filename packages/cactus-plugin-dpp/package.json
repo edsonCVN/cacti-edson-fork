@@ -1,7 +1,7 @@
 {
     "name": "@hyperledger/cactus-plugin-dpp",
     "version": "0.0.1",
-    "description": "Carbon credit abstraction layer for interacting with different protocol implementations across multiple blockchains",
+    "description": "Digital Product Passport abstraction layer for interacting with different DPP implementations across multiple blockchains",
     "keywords": [
         "Hyperledger",
         "Cacti",
@@ -9,7 +9,8 @@
         "Blockchain",
         "Interoperability",
         "Distributed Ledger Technology",
-        "Carbon Credits"
+        "DPP",
+        "Digital Product Passport"
     ],
     "homepage": "https://github.com/hyperledger-cacti/cacti#readme",
     "bugs": {
@@ -30,11 +31,6 @@
             "name": "Edson da Veiga",
             "email": "edson.da.veiga@tecnico.ulisboa.pt",
             "url": "https://github.com/edsonCVN"
-        },
-        {
-            "name": "André Augusto",
-            "email": "andre.augusto@tecnico.ulisboa.pt",
-            "url": "https://github.com/AndreAugusto11"
         },
         {
             "name": "Add your name",

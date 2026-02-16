@@ -1,51 +1,288 @@
 openapi: 3.0.3
 info:
-  description: Implementation for Carbon Credit Plugin logic
+  description: API for Digital Product Passport interoperability - Fundão Cherry Case
+    Study. Implements full lifecycle from production to consumer feedback.
   license:
     name: Apache-2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
-  title: Hyperledger Cactus Plugin - Carbon Credit
-  version: 0.0.1
+  title: Hyperledger Cacti Plugin - Digital Product Passport (DPP)
+  version: 1.0.0
 servers:
 - url: /
 paths:
-  /api/v1/@hyperledger/cactus-plugin-dpp/hello-world:
+  /api/v1/@hyperledger/cactus-plugin-dpp/create:
     post:
-      description: ""
-      operationId: helloWorldRequest
+      operationId: createDPP
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/HelloWorldRequest'
+              $ref: '#/components/schemas/CreateDPPRequest'
+        required: true
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HelloWorldResponse'
-          description: Successful response
-      x-hyperledger-cacti:
-        http:
-          verbLowerCase: post
-          path: /api/v1/@hyperledger/cactus-plugin-dpp/hello-world
+                $ref: '#/components/schemas/TransactionResponse'
+          description: DPP Created
+      summary: "Farmer: Create initial DPP NFT"
+      tags:
+      - Farmer
+  /api/v1/@hyperledger/cactus-plugin-dpp/transfer:
+    post:
+      operationId: transferDPP
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequest'
+        required: true
+      responses:
+        "200":
+          description: Ownership Transferred
+      summary: "Transfer ownership to another actor (e.g., Processor, Transporter)"
+      tags:
+      - Ownership
+  /api/v1/@hyperledger/cactus-plugin-dpp/aggregate:
+    post:
+      operationId: aggregateDPP
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AggregateRequest'
+        required: true
+      responses:
+        "200":
+          description: Aggregation Successful
+      summary: "Processor: Aggregate multiple production DPPs into a Box/Pallet"
+      tags:
+      - Processor
+  /api/v1/@hyperledger/cactus-plugin-dpp/update-transport:
+    patch:
+      operationId: updateTransportData
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransportDataRequest'
+        required: true
+      responses:
+        "200":
+          description: Transport Data Logged
+      summary: "Transporter: Update shipping details (Temp, Humidity, Route)"
+      tags:
+      - Logistics
+  /api/v1/@hyperledger/cactus-plugin-dpp/scan/{dppId}:
+    get:
+      operationId: getDPPById
+      parameters:
+      - explode: false
+        in: path
+        name: dppId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DPPDetails'
+          description: Full DPP Metadata
+      summary: "Consumer/Audit: Read DPP data via QR Code ID"
+      tags:
+      - Public
+  /api/v1/@hyperledger/cactus-plugin-dpp/history/{dppId}:
+    get:
+      operationId: getDPPHistory
+      parameters:
+      - explode: false
+        in: path
+        name: dppId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/HistoryRecord'
+                type: array
+          description: Historical Trail
+      summary: "Audit: Get full provenance history of a DPP"
+      tags:
+      - Audit
+  /api/v1/@hyperledger/cactus-plugin-dpp/feedback:
+    post:
+      operationId: addFeedback
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+        required: true
+      responses:
+        "200":
+          description: Feedback Recorded
+      summary: "Consumer: Add rating and feedback to the DPP"
+      tags:
+      - Consumer
 components:
   schemas:
-    HelloWorldRequest:
+    CreateDPPRequest:
       example:
-        name: name
+        farmerId: farmerId
+        productionData:
+          harvestDate: 2000-01-23T04:56:07.000+00:00
+          pesticidesUsed: pesticidesUsed
+          location: location
+          certifications:
+          - certifications
+          - certifications
+        batchId: batchId
       properties:
-        name:
+        farmerId:
           type: string
-      required:
-      - name
+        batchId:
+          type: string
+        productionData:
+          $ref: '#/components/schemas/CreateDPPRequest_productionData'
       type: object
-    HelloWorldResponse:
+    TransferRequest:
       example:
-        message: message
+        newOwnerAddress: newOwnerAddress
+        actorRole: PROCESSOR
+        dppId: dppId
       properties:
-        message:
+        dppId:
           type: string
-      required:
-      - message
+        newOwnerAddress:
+          type: string
+        actorRole:
+          enum:
+          - PROCESSOR
+          - TRANSPORTER
+          - RETAILER
+          type: string
+      type: object
+    AggregateRequest:
+      example:
+        processingDetails: processingDetails
+        newBatchId: newBatchId
+        parentDppIds:
+        - parentDppIds
+        - parentDppIds
+      properties:
+        parentDppIds:
+          items:
+            type: string
+          type: array
+        newBatchId:
+          type: string
+        processingDetails:
+          type: string
+      type: object
+    TransportDataRequest:
+      example:
+        temperature: 0.8008281904610115
+        humidity: 6.027456183070403
+        dppId: dppId
+        location: location
+      properties:
+        dppId:
+          type: string
+        temperature:
+          type: number
+        humidity:
+          type: number
+        location:
+          type: string
+      type: object
+    FeedbackRequest:
+      example:
+        rating: 1
+        dppId: dppId
+        comment: comment
+      properties:
+        dppId:
+          type: string
+        rating:
+          maximum: 5
+          minimum: 1
+          type: integer
+        comment:
+          type: string
+      type: object
+    DPPDetails:
+      example:
+        metadata: "{}"
+        currentOwner: currentOwner
+        dppId: dppId
+        status: status
+      properties:
+        dppId:
+          type: string
+        currentOwner:
+          type: string
+        status:
+          type: string
+        metadata:
+          type: object
+      type: object
+    HistoryRecord:
+      example:
+        actor: actor
+        action: action
+        txHash: txHash
+        timestamp: 2000-01-23T04:56:07.000+00:00
+      properties:
+        timestamp:
+          format: date-time
+          type: string
+        actor:
+          type: string
+        action:
+          type: string
+        txHash:
+          type: string
+      type: object
+    TransactionResponse:
+      example:
+        dppId: dppId
+        transactionHash: transactionHash
+        status: status
+      properties:
+        transactionHash:
+          type: string
+        dppId:
+          type: string
+        status:
+          type: string
+      type: object
+    CreateDPPRequest_productionData:
+      example:
+        harvestDate: 2000-01-23T04:56:07.000+00:00
+        pesticidesUsed: pesticidesUsed
+        location: location
+        certifications:
+        - certifications
+        - certifications
+      properties:
+        pesticidesUsed:
+          type: string
+        certifications:
+          items:
+            type: string
+          type: array
+        harvestDate:
+          format: date-time
+          type: string
+        location:
+          type: string
       type: object
