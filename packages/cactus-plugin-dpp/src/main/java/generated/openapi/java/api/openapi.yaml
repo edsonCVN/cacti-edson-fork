@@ -1,0 +1,1132 @@
+openapi: 3.0.3
+info:
+  description: Implementation for Digital Product Passport logic
+  license:
+    name: Apache-2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  title: Hyperledger Cacti Plugin - Digital Product Passport (DPP)
+  version: 0.0.1
+servers:
+- url: /
+paths:
+  /api/v1/@hyperledger/cactus-plugin-dpp/create-dpp:
+    post:
+      description: Cria o DPP (NFT) inicial para um lote de producao.
+      operationId: createDPP
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDPPRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateDPPResponse'
+          description: Successful response
+      x-hyperledger-cacti:
+        http:
+          verbLowerCase: post
+          path: /api/v1/@hyperledger/cactus-plugin-dpp/create-dpp
+      x-content-type: application/json
+      x-accepts: application/json
+  /api/v1/@hyperledger/cactus-plugin-dpp/transfer-dpp:
+    post:
+      description: Transfere a propriedade do DPP para outro ator.
+      operationId: transferDPP
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferDPPRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: Successful response
+      x-hyperledger-cacti:
+        http:
+          verbLowerCase: post
+          path: /api/v1/@hyperledger/cactus-plugin-dpp/transfer-dpp
+      x-content-type: application/json
+      x-accepts: application/json
+  /api/v1/@hyperledger/cactus-plugin-dpp/receive-dpp:
+    post:
+      description: Recebe a notificacao de transferencia e assume a propriedade do
+        DPP.
+      operationId: receiveDPP
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReceiveDPPRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: Successful response
+      x-hyperledger-cacti:
+        http:
+          verbLowerCase: post
+          path: /api/v1/@hyperledger/cactus-plugin-dpp/receive-dpp
+      x-content-type: application/json
+      x-accepts: application/json
+  /api/v1/@hyperledger/cactus-plugin-dpp/amend-dpp-data:
+    post:
+      description: Permite correcao pontual de dados introduzidos.
+      operationId: amendDPPData
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AmendDPPDataRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: Successful response
+      x-hyperledger-cacti:
+        http:
+          verbLowerCase: post
+          path: /api/v1/@hyperledger/cactus-plugin-dpp/amend-dpp-data
+      x-content-type: application/json
+      x-accepts: application/json
+  /api/v1/@hyperledger/cactus-plugin-dpp/add-certification:
+    post:
+      description: Adiciona uma nova certificacao ou atualiza uma existente.
+      operationId: addCertification
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddCertificationRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: Successful response
+      x-hyperledger-cacti:
+        http:
+          verbLowerCase: post
+          path: /api/v1/@hyperledger/cactus-plugin-dpp/add-certification
+      x-content-type: application/json
+      x-accepts: application/json
+  /api/v1/@hyperledger/cactus-plugin-dpp/revoke-dpp:
+    post:
+      description: Marca o DPP como invalido ou revogado.
+      operationId: revokeDPP
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RevokeDPPRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: Successful response
+      x-hyperledger-cacti:
+        http:
+          verbLowerCase: post
+          path: /api/v1/@hyperledger/cactus-plugin-dpp/revoke-dpp
+      x-content-type: application/json
+      x-accepts: application/json
+  /api/v1/@hyperledger/cactus-plugin-dpp/list-owned-dpps:
+    post:
+      description: Lista todos os DPPs atualmente detidos pelo ator.
+      operationId: listOwnedDPPs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListOwnedDPPsRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListOwnedDPPsResponse'
+          description: Successful response
+      x-hyperledger-cacti:
+        http:
+          verbLowerCase: post
+          path: /api/v1/@hyperledger/cactus-plugin-dpp/list-owned-dpps
+      x-content-type: application/json
+      x-accepts: application/json
+  /api/v1/@hyperledger/cactus-plugin-dpp/get-dpp-history:
+    post:
+      description: Obtem o historico completo do DPP.
+      operationId: getDPPHistory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetDPPHistoryRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetDPPHistoryResponse'
+          description: Successful response
+      x-hyperledger-cacti:
+        http:
+          verbLowerCase: post
+          path: /api/v1/@hyperledger/cactus-plugin-dpp/get-dpp-history
+      x-content-type: application/json
+      x-accepts: application/json
+  /api/v1/@hyperledger/cactus-plugin-dpp/aggregate-dpp-to-box:
+    post:
+      description: Agrega múltiplos DPPs de produção num novo DPP de Caixa.
+      operationId: aggregateDPPtoBox
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AggregateDPPtoBoxRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AggregateDPPtoBoxResponse'
+          description: Successful response
+      x-hyperledger-cacti:
+        http:
+          verbLowerCase: post
+          path: /api/v1/@hyperledger/cactus-plugin-dpp/aggregate-dpp-to-box
+      x-content-type: application/json
+      x-accepts: application/json
+  /api/v1/@hyperledger/cactus-plugin-dpp/aggregate-dpp-to-lot:
+    post:
+      description: Agrega múltiplos DPPs de Caixa num novo DPP de Lote.
+      operationId: aggregateDPPtoLot
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AggregateDPPtoLotRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AggregateDPPtoLotResponse'
+          description: Successful response
+      x-hyperledger-cacti:
+        http:
+          verbLowerCase: post
+          path: /api/v1/@hyperledger/cactus-plugin-dpp/aggregate-dpp-to-lot
+      x-content-type: application/json
+      x-accepts: application/json
+  /api/v1/@hyperledger/cactus-plugin-dpp/get-dpp-components:
+    post:
+      description: Lista os identificadores dos DPPs filhos associados.
+      operationId: getDPPComponents
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetDPPComponentsRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetDPPComponentsResponse'
+          description: Successful response
+      x-hyperledger-cacti:
+        http:
+          verbLowerCase: post
+          path: /api/v1/@hyperledger/cactus-plugin-dpp/get-dpp-components
+      x-content-type: application/json
+      x-accepts: application/json
+  /api/v1/@hyperledger/cactus-plugin-dpp/search-dpp-by-criteria:
+    post:
+      description: Permite pesquisar DPPs com base em criterios.
+      operationId: searchDPPByCriteria
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchDPPByCriteriaRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchDPPByCriteriaResponse'
+          description: Successful response
+      x-hyperledger-cacti:
+        http:
+          verbLowerCase: post
+          path: /api/v1/@hyperledger/cactus-plugin-dpp/search-dpp-by-criteria
+      x-content-type: application/json
+      x-accepts: application/json
+  /api/v1/@hyperledger/cactus-plugin-dpp/update-transport-data:
+    post:
+      description: Adiciona ao DPP os condicoes do processo de transporte.
+      operationId: updateTransportData
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTransportDataRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: Successful response
+      x-hyperledger-cacti:
+        http:
+          verbLowerCase: post
+          path: /api/v1/@hyperledger/cactus-plugin-dpp/update-transport-data
+      x-content-type: application/json
+      x-accepts: application/json
+  /api/v1/@hyperledger/cactus-plugin-dpp/update-retail-data:
+    post:
+      description: Adiciona ao DPP dados sobre o varejo (dispositorio de loja).
+      operationId: updateRetailData
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRetailDataRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: Successful response
+      x-hyperledger-cacti:
+        http:
+          verbLowerCase: post
+          path: /api/v1/@hyperledger/cactus-plugin-dpp/update-retail-data
+      x-content-type: application/json
+      x-accepts: application/json
+  /api/v1/@hyperledger/cactus-plugin-dpp/get-dpp-data:
+    post:
+      description: Acede a todas as informacoes relevantes do DPP.
+      operationId: getDPPData
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetDPPDataRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetDPPDataResponse'
+          description: Successful response
+      x-hyperledger-cacti:
+        http:
+          verbLowerCase: post
+          path: /api/v1/@hyperledger/cactus-plugin-dpp/get-dpp-data
+      x-content-type: application/json
+      x-accepts: application/json
+  /api/v1/@hyperledger/cactus-plugin-dpp/get-recycling-info:
+    post:
+      description: Fornece informacoes sobre reciclagem do DPP.
+      operationId: getRecyclingInfo
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetRecyclingInfoRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetRecyclingInfoResponse'
+          description: Successful response
+      x-hyperledger-cacti:
+        http:
+          verbLowerCase: post
+          path: /api/v1/@hyperledger/cactus-plugin-dpp/get-recycling-info
+      x-content-type: application/json
+      x-accepts: application/json
+  /api/v1/@hyperledger/cactus-plugin-dpp/submit-product-review:
+    post:
+      description: Permite deixar avaliacao sobre o produto.
+      operationId: submitProductReview
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitProductReviewRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: Successful response
+      x-hyperledger-cacti:
+        http:
+          verbLowerCase: post
+          path: /api/v1/@hyperledger/cactus-plugin-dpp/submit-product-review
+      x-content-type: application/json
+      x-accepts: application/json
+  /api/v1/@hyperledger/cactus-plugin-dpp/subscribe-to-updates:
+    post:
+      description: Subscrever a atualizacoes do DPP.
+      operationId: subscribeToUpdates
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscribeToUpdatesRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: Successful response
+      x-hyperledger-cacti:
+        http:
+          verbLowerCase: post
+          path: /api/v1/@hyperledger/cactus-plugin-dpp/subscribe-to-updates
+      x-content-type: application/json
+      x-accepts: application/json
+  /api/v1/@hyperledger/cactus-plugin-dpp/crosschain-transfer-dpp:
+    post:
+      description: Move ou sincroniza o DPP entre blockchains.
+      operationId: crossChainTransferDPP
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrossChainTransferDPPRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: Successful response
+      x-hyperledger-cacti:
+        http:
+          verbLowerCase: post
+          path: /api/v1/@hyperledger/cactus-plugin-dpp/crosschain-transfer-dpp
+      x-content-type: application/json
+      x-accepts: application/json
+  /api/v1/@hyperledger/cactus-plugin-dpp/check-crosschain-status:
+    post:
+      description: Verifica o estado de uma transferencia entre blockchains.
+      operationId: checkCrossChainStatus
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckCrossChainStatusRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: Successful response
+      x-hyperledger-cacti:
+        http:
+          verbLowerCase: post
+          path: /api/v1/@hyperledger/cactus-plugin-dpp/check-crosschain-status
+      x-content-type: application/json
+      x-accepts: application/json
+  /api/v1/@hyperledger/cactus-plugin-dpp/verify-dpp-authenticity:
+    post:
+      description: Verifica se o DPP e um NFT legitimo e a sua proveniencia.
+      operationId: verifyDPPAuthenticity
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyDPPAuthenticityRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyDPPAuthenticityResponse'
+          description: Successful response
+      x-hyperledger-cacti:
+        http:
+          verbLowerCase: post
+          path: /api/v1/@hyperledger/cactus-plugin-dpp/verify-dpp-authenticity
+      x-content-type: application/json
+      x-accepts: application/json
+components:
+  schemas:
+    WalletObject:
+      description: Objeto que contem a chave privada e URL do provider da carteira.
+      example:
+        privateKey: privateKey
+        address: address
+        providerURL: providerURL
+      properties:
+        address:
+          type: string
+        privateKey:
+          type: string
+        providerURL:
+          type: string
+      required:
+      - privateKey
+      - providerURL
+      type: object
+    GenericResponse:
+      example:
+        success: true
+        message: message
+        txHash: txHash
+      properties:
+        txHash:
+          type: string
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+      - success
+      - txHash
+      type: object
+    CreateDPPRequest:
+      example:
+        owner: owner
+        productionData:
+          key: ""
+        walletObject:
+          privateKey: privateKey
+          address: address
+          providerURL: providerURL
+        network: network
+      properties:
+        network:
+          type: string
+        owner:
+          type: string
+        productionData:
+          additionalProperties: true
+          type: object
+        walletObject:
+          $ref: '#/components/schemas/WalletObject'
+      required:
+      - network
+      - owner
+      - productionData
+      - walletObject
+      type: object
+    CreateDPPResponse:
+      example:
+        dppId: dppId
+        txHash: txHash
+      properties:
+        dppId:
+          type: string
+        txHash:
+          type: string
+      required:
+      - dppId
+      - txHash
+      type: object
+    TransferDPPRequest:
+      example:
+        dppId: dppId
+        newOwner: newOwner
+        walletObject:
+          privateKey: privateKey
+          address: address
+          providerURL: providerURL
+        network: network
+      properties:
+        network:
+          type: string
+        dppId:
+          type: string
+        newOwner:
+          type: string
+        walletObject:
+          $ref: '#/components/schemas/WalletObject'
+      required:
+      - dppId
+      - network
+      - newOwner
+      - walletObject
+      type: object
+    ReceiveDPPRequest:
+      example:
+        dppId: dppId
+        walletObject:
+          privateKey: privateKey
+          address: address
+          providerURL: providerURL
+        network: network
+      properties:
+        network:
+          type: string
+        dppId:
+          type: string
+        walletObject:
+          $ref: '#/components/schemas/WalletObject'
+      required:
+      - dppId
+      - network
+      - walletObject
+      type: object
+    AmendDPPDataRequest:
+      example:
+        dppId: dppId
+        walletObject:
+          privateKey: privateKey
+          address: address
+          providerURL: providerURL
+        newData:
+          key: ""
+        network: network
+      properties:
+        network:
+          type: string
+        dppId:
+          type: string
+        newData:
+          additionalProperties: true
+          type: object
+        walletObject:
+          $ref: '#/components/schemas/WalletObject'
+      required:
+      - dppId
+      - network
+      - newData
+      - walletObject
+      type: object
+    AddCertificationRequest:
+      example:
+        dppId: dppId
+        certificationData:
+          key: ""
+        walletObject:
+          privateKey: privateKey
+          address: address
+          providerURL: providerURL
+        network: network
+      properties:
+        network:
+          type: string
+        dppId:
+          type: string
+        certificationData:
+          additionalProperties: true
+          type: object
+        walletObject:
+          $ref: '#/components/schemas/WalletObject'
+      required:
+      - certificationData
+      - dppId
+      - network
+      - walletObject
+      type: object
+    RevokeDPPRequest:
+      example:
+        reason: reason
+        dppId: dppId
+        walletObject:
+          privateKey: privateKey
+          address: address
+          providerURL: providerURL
+        network: network
+      properties:
+        network:
+          type: string
+        dppId:
+          type: string
+        reason:
+          type: string
+        walletObject:
+          $ref: '#/components/schemas/WalletObject'
+      required:
+      - dppId
+      - network
+      - reason
+      - walletObject
+      type: object
+    ListOwnedDPPsRequest:
+      example:
+        ownerAddress: ownerAddress
+        walletObject:
+          privateKey: privateKey
+          address: address
+          providerURL: providerURL
+        network: network
+      properties:
+        network:
+          type: string
+        ownerAddress:
+          type: string
+        walletObject:
+          $ref: '#/components/schemas/WalletObject'
+      required:
+      - network
+      - ownerAddress
+      - walletObject
+      type: object
+    ListOwnedDPPsResponse:
+      example:
+        dppIds:
+        - dppIds
+        - dppIds
+      properties:
+        dppIds:
+          items:
+            type: string
+          type: array
+      required:
+      - dppIds
+      type: object
+    GetDPPHistoryRequest:
+      example:
+        dppId: dppId
+        walletObject:
+          privateKey: privateKey
+          address: address
+          providerURL: providerURL
+        network: network
+      properties:
+        network:
+          type: string
+        dppId:
+          type: string
+        walletObject:
+          $ref: '#/components/schemas/WalletObject'
+      required:
+      - dppId
+      - network
+      - walletObject
+      type: object
+    GetDPPHistoryResponse:
+      example:
+        history:
+        - key: ""
+        - key: ""
+      properties:
+        history:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+      required:
+      - history
+      type: object
+    AggregateDPPtoBoxRequest:
+      example:
+        processingData:
+          key: ""
+        walletObject:
+          privateKey: privateKey
+          address: address
+          providerURL: providerURL
+        parentList:
+        - parentList
+        - parentList
+        network: network
+      properties:
+        network:
+          type: string
+        parentList:
+          items:
+            type: string
+          type: array
+        processingData:
+          additionalProperties: true
+          type: object
+        walletObject:
+          $ref: '#/components/schemas/WalletObject'
+      required:
+      - network
+      - parentList
+      - processingData
+      - walletObject
+      type: object
+    AggregateDPPtoBoxResponse:
+      example:
+        newDPPBoxId: newDPPBoxId
+        txHash: txHash
+      properties:
+        newDPPBoxId:
+          type: string
+        txHash:
+          type: string
+      required:
+      - newDPPBoxId
+      - txHash
+      type: object
+    AggregateDPPtoLotRequest:
+      example:
+        parentBoxList:
+        - parentBoxList
+        - parentBoxList
+        aggregationData:
+          key: ""
+        walletObject:
+          privateKey: privateKey
+          address: address
+          providerURL: providerURL
+        network: network
+      properties:
+        network:
+          type: string
+        parentBoxList:
+          items:
+            type: string
+          type: array
+        aggregationData:
+          additionalProperties: true
+          type: object
+        walletObject:
+          $ref: '#/components/schemas/WalletObject'
+      required:
+      - aggregationData
+      - network
+      - parentBoxList
+      - walletObject
+      type: object
+    AggregateDPPtoLotResponse:
+      example:
+        txHash: txHash
+        newDPPLotId: newDPPLotId
+      properties:
+        newDPPLotId:
+          type: string
+        txHash:
+          type: string
+      required:
+      - newDPPLotId
+      - txHash
+      type: object
+    GetDPPComponentsRequest:
+      example:
+        aggregatedDppId: aggregatedDppId
+        walletObject:
+          privateKey: privateKey
+          address: address
+          providerURL: providerURL
+        network: network
+      properties:
+        network:
+          type: string
+        aggregatedDppId:
+          type: string
+        walletObject:
+          $ref: '#/components/schemas/WalletObject'
+      required:
+      - aggregatedDppId
+      - network
+      - walletObject
+      type: object
+    GetDPPComponentsResponse:
+      example:
+        componentDppIds:
+        - componentDppIds
+        - componentDppIds
+      properties:
+        componentDppIds:
+          items:
+            type: string
+          type: array
+      required:
+      - componentDppIds
+      type: object
+    SearchDPPByCriteriaRequest:
+      example:
+        criteria:
+          key: ""
+        walletObject:
+          privateKey: privateKey
+          address: address
+          providerURL: providerURL
+        network: network
+      properties:
+        network:
+          type: string
+        criteria:
+          additionalProperties: true
+          type: object
+        walletObject:
+          $ref: '#/components/schemas/WalletObject'
+      required:
+      - criteria
+      - network
+      - walletObject
+      type: object
+    SearchDPPByCriteriaResponse:
+      example:
+        dppIds:
+        - dppIds
+        - dppIds
+      properties:
+        dppIds:
+          items:
+            type: string
+          type: array
+      required:
+      - dppIds
+      type: object
+    UpdateTransportDataRequest:
+      example:
+        transportData:
+          key: ""
+        dppId: dppId
+        walletObject:
+          privateKey: privateKey
+          address: address
+          providerURL: providerURL
+        network: network
+      properties:
+        network:
+          type: string
+        dppId:
+          type: string
+        transportData:
+          additionalProperties: true
+          type: object
+        walletObject:
+          $ref: '#/components/schemas/WalletObject'
+      required:
+      - dppId
+      - network
+      - transportData
+      - walletObject
+      type: object
+    UpdateRetailDataRequest:
+      example:
+        retailData:
+          key: ""
+        dppId: dppId
+        walletObject:
+          privateKey: privateKey
+          address: address
+          providerURL: providerURL
+        network: network
+      properties:
+        network:
+          type: string
+        dppId:
+          type: string
+        retailData:
+          additionalProperties: true
+          type: object
+        walletObject:
+          $ref: '#/components/schemas/WalletObject'
+      required:
+      - dppId
+      - network
+      - retailData
+      - walletObject
+      type: object
+    GetDPPDataRequest:
+      example:
+        dppId: dppId
+        walletObject:
+          privateKey: privateKey
+          address: address
+          providerURL: providerURL
+        network: network
+      properties:
+        network:
+          type: string
+        dppId:
+          type: string
+        walletObject:
+          $ref: '#/components/schemas/WalletObject'
+      required:
+      - dppId
+      - network
+      - walletObject
+      type: object
+    GetDPPDataResponse:
+      example:
+        dppData:
+          key: ""
+      properties:
+        dppData:
+          additionalProperties: true
+          type: object
+      required:
+      - dppData
+      type: object
+    GetRecyclingInfoRequest:
+      example:
+        dppId: dppId
+        walletObject:
+          privateKey: privateKey
+          address: address
+          providerURL: providerURL
+        network: network
+      properties:
+        network:
+          type: string
+        dppId:
+          type: string
+        walletObject:
+          $ref: '#/components/schemas/WalletObject'
+      required:
+      - dppId
+      - network
+      - walletObject
+      type: object
+    GetRecyclingInfoResponse:
+      example:
+        recyclingInfo:
+          key: ""
+      properties:
+        recyclingInfo:
+          additionalProperties: true
+          type: object
+      required:
+      - recyclingInfo
+      type: object
+    SubmitProductReviewRequest:
+      example:
+        reviewData:
+          key: ""
+        dppId: dppId
+        walletObject:
+          privateKey: privateKey
+          address: address
+          providerURL: providerURL
+        network: network
+      properties:
+        network:
+          type: string
+        dppId:
+          type: string
+        reviewData:
+          additionalProperties: true
+          type: object
+        walletObject:
+          $ref: '#/components/schemas/WalletObject'
+      required:
+      - dppId
+      - network
+      - reviewData
+      - walletObject
+      type: object
+    SubscribeToUpdatesRequest:
+      example:
+        contactInfo: contactInfo
+        dppId: dppId
+        walletObject:
+          privateKey: privateKey
+          address: address
+          providerURL: providerURL
+        network: network
+      properties:
+        network:
+          type: string
+        dppId:
+          type: string
+        contactInfo:
+          type: string
+        walletObject:
+          $ref: '#/components/schemas/WalletObject'
+      required:
+      - contactInfo
+      - dppId
+      - network
+      - walletObject
+      type: object
+    CrossChainTransferDPPRequest:
+      example:
+        dppId: dppId
+        walletObject:
+          privateKey: privateKey
+          address: address
+          providerURL: providerURL
+        network: network
+        destinationNetwork: destinationNetwork
+      properties:
+        network:
+          type: string
+        dppId:
+          type: string
+        destinationNetwork:
+          type: string
+        walletObject:
+          $ref: '#/components/schemas/WalletObject'
+      required:
+      - destinationNetwork
+      - dppId
+      - network
+      - walletObject
+      type: object
+    CheckCrossChainStatusRequest:
+      example:
+        transferId: transferId
+        walletObject:
+          privateKey: privateKey
+          address: address
+          providerURL: providerURL
+        network: network
+      properties:
+        network:
+          type: string
+        transferId:
+          type: string
+        walletObject:
+          $ref: '#/components/schemas/WalletObject'
+      required:
+      - network
+      - transferId
+      - walletObject
+      type: object
+    VerifyDPPAuthenticityRequest:
+      example:
+        dppId: dppId
+        walletObject:
+          privateKey: privateKey
+          address: address
+          providerURL: providerURL
+        network: network
+      properties:
+        network:
+          type: string
+        dppId:
+          type: string
+        walletObject:
+          $ref: '#/components/schemas/WalletObject'
+      required:
+      - dppId
+      - network
+      - walletObject
+      type: object
+    VerifyDPPAuthenticityResponse:
+      example:
+        provenance:
+          key: ""
+        isValid: true
+      properties:
+        isValid:
+          type: boolean
+        provenance:
+          additionalProperties: true
+          type: object
+      required:
+      - isValid
+      type: object
+
