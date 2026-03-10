@@ -3,7 +3,7 @@ import * as path from "path";
 // @ts-ignore
 import * as solc from "solc";
 import { ethers } from "ethers";
-import { PluginDPP } from "../src/main/typescript/plugin-dpp";
+import { EVMDPPLeaf } from "../src/main/typescript/implementations/evm-dpp-leaf";
 
 // 1. Compile the contract using solc
 function compileContract() {
@@ -106,33 +106,24 @@ async function main() {
   await contract.deployed();
   console.log(`Contract deployed at: ${contract.address}`);
 
-  // 4. Initialize PluginDPP with Hermes Gateway pointing to a placeholder/local server
-  console.log("Initializing PluginDPP with SATP Gateway Client...");
-  const plugin = new PluginDPP({
-    instanceId: "dpp-satp-test-instance",
+  // 4. Initialize EVMDPPLeaf
+  console.log("Initializing EVMDPPLeaf...");
+  const plugin = new EVMDPPLeaf({
+    network: "EVM",
+    signer: deployer,
     contractAddress: contract.address,
-    satpGatewayUrl: "http://127.0.0.1:3011", // Default Hermes Test Server Port
   });
-
-  // Mock the provider
-  // @ts-ignore
-  plugin.providers.set("EVM", provider);
 
   // 5. Test 1: CREATE DPP
   console.log(`\n--- Test 1: CREATE DPP ---`);
-  const createRes = await plugin.createDPP(
-    {
-      network: "EVM",
-      owner: await deployer.getAddress(),
-      productionData: {
-        id: "PROD-CROSS-777",
-        origin: "Portugal",
-        certs: ["EU-Standard"],
-      },
-      walletObject: {} as any,
+  const createRes = await plugin.createDPP({
+    owner: await deployer.getAddress(),
+    productionData: {
+      id: "PROD-CROSS-777",
+      origin: "Portugal",
+      certs: ["EU-Standard"],
     },
-    deployer,
-  );
+  } as any);
   console.log("Create Response:", createRes);
   const dppId = createRes.dppId;
 
@@ -142,18 +133,14 @@ async function main() {
   console.log(
     `\n--- Test 2: CROSS-CHAIN TRANSFER DPP ${dppId} to ${receiverAddr} ---`,
   );
-  console.log(`Targeting Hermes Gateway at http://127.0.0.1:3011 ...`);
-  const transferRes = await plugin.crossChainTransferDPP(
-    {
-      network: "EVM",
-      dppId,
-      recipientAddress: receiverAddr,
-      destinationNetwork: destinationLedger,
-      transferReason: "Export to secondary Ledger due to logistics handover",
-      walletObject: {} as any,
-    },
-    deployer,
-  );
+
+  const transferRes = await plugin.crossChainTransferDPP({
+    dppId,
+    recipientAddress: receiverAddr,
+    destinationNetwork: destinationLedger,
+    transferReason: "Export to secondary Ledger due to logistics handover",
+  } as any);
+
   console.log("Cross-Chain Transfer Response:", transferRes);
 
   console.log("\n✅ E2E SATP Transfer script finished!");
