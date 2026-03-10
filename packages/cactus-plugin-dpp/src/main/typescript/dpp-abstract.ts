@@ -2,37 +2,9 @@ import type { LogLevelDesc } from "@hyperledger/cactus-common";
 import { ethers } from "ethers";
 import {
   CreateDPPRequest,
-  CreateDPPResponse,
-  TransferDPPRequest,
-  ReceiveDPPRequest,
-  AmendDPPDataRequest,
-  AddCertificationRequest,
-  RevokeDPPRequest,
-  ListOwnedDPPsRequest,
-  ListOwnedDPPsResponse,
-  GetDPPHistoryRequest,
-  GetDPPHistoryResponse,
-  AggregateDPPtoBoxRequest,
-  AggregateDPPtoBoxResponse,
-  AggregateDPPtoLotRequest,
-  AggregateDPPtoLotResponse,
-  GetDPPComponentsRequest,
-  GetDPPComponentsResponse,
-  SearchDPPByCriteriaRequest,
-  SearchDPPByCriteriaResponse,
-  UpdateTransportDataRequest,
-  UpdateRetailDataRequest,
-  GetDPPDataRequest,
-  GetDPPDataResponse,
-  GetRecyclingInfoRequest,
-  GetRecyclingInfoResponse,
-  SubmitProductReviewRequest,
-  SubscribeToUpdatesRequest,
-  CrossChainTransferDPPRequest,
-  CheckCrossChainStatusRequest,
-  VerifyDPPAuthenticityRequest,
-  VerifyDPPAuthenticityResponse,
-  GenericResponse,
+  TransferRequest,
+  TransportDataRequest,
+  AggregateRequest,
 } from "./public-api";
 
 /**
@@ -61,95 +33,53 @@ export abstract class DPPAbstract {
 
   // --- Manufacturer (Creation & Ownership) ---
 
-  public abstract createDPP(
-    request: CreateDPPRequest,
-  ): Promise<CreateDPPResponse>;
+  public abstract createDPP(request: any): Promise<any>;
 
-  public abstract transferDPP(
-    request: TransferDPPRequest,
-  ): Promise<GenericResponse>;
+  public abstract transferDPP(request: any): Promise<any>;
 
-  public abstract amendDPPData(
-    request: AmendDPPDataRequest,
-  ): Promise<GenericResponse>;
+  public abstract amendDPPData(request: any): Promise<any>;
 
-  public abstract addCertification(
-    request: AddCertificationRequest,
-  ): Promise<GenericResponse>;
+  public abstract addCertification(request: any): Promise<any>;
 
-  public abstract revokeDPP(
-    request: RevokeDPPRequest,
-  ): Promise<GenericResponse>;
+  public abstract revokeDPP(request: any): Promise<any>;
 
-  public abstract listOwnedDPPs(
-    request: ListOwnedDPPsRequest,
-  ): Promise<ListOwnedDPPsResponse>;
+  public abstract listOwnedDPPs(request: any): Promise<any>;
 
-  public abstract getDPPHistory(
-    request: GetDPPHistoryRequest,
-  ): Promise<GetDPPHistoryResponse>;
+  public abstract getDPPHistory(request: any): Promise<any>;
 
   // --- Processing Company (Aggregation & Receiving) ---
 
-  public abstract receiveDPP(
-    request: ReceiveDPPRequest,
-  ): Promise<GenericResponse>;
+  public abstract receiveDPP(request: any): Promise<any>;
 
-  public abstract aggregateDPPtoBox(
-    request: AggregateDPPtoBoxRequest,
-  ): Promise<AggregateDPPtoBoxResponse>;
+  public abstract aggregateDPPtoBox(request: any): Promise<any>;
 
-  public abstract aggregateDPPtoLot(
-    request: AggregateDPPtoLotRequest,
-  ): Promise<AggregateDPPtoLotResponse>;
+  public abstract aggregateDPPtoLot(request: any): Promise<any>;
 
-  public abstract getDPPComponents(
-    request: GetDPPComponentsRequest,
-  ): Promise<GetDPPComponentsResponse>;
+  public abstract getDPPComponents(request: any): Promise<any>;
 
-  public abstract searchDPPByCriteria(
-    request: SearchDPPByCriteriaRequest,
-  ): Promise<SearchDPPByCriteriaResponse>;
+  public abstract searchDPPByCriteria(request: any): Promise<any>;
 
   // --- Transporter and Retailer ---
 
-  public abstract updateTransportData(
-    request: UpdateTransportDataRequest,
-  ): Promise<GenericResponse>;
+  public abstract updateTransportData(request: any): Promise<any>;
 
-  public abstract updateRetailData(
-    request: UpdateRetailDataRequest,
-  ): Promise<GenericResponse>;
+  public abstract updateRetailData(request: any): Promise<any>;
 
   // --- Final Consumer ---
 
-  public abstract getDPPData(
-    request: GetDPPDataRequest,
-  ): Promise<GetDPPDataResponse>;
+  public abstract getDPPData(request: any): Promise<any>;
 
-  public abstract getRecyclingInfo(
-    request: GetRecyclingInfoRequest,
-  ): Promise<GetRecyclingInfoResponse>;
+  public abstract getRecyclingInfo(request: any): Promise<any>;
 
-  public abstract submitProductReview(
-    request: SubmitProductReviewRequest,
-  ): Promise<GenericResponse>;
+  public abstract submitProductReview(request: any): Promise<any>;
 
-  public abstract subscribeToUpdates(
-    request: SubscribeToUpdatesRequest,
-  ): Promise<GenericResponse>;
+  public abstract subscribeToUpdates(request: any): Promise<any>;
 
   // --- Interoperability (SATP) & Validation ---
 
-  public abstract crossChainTransferDPP(
-    request: CrossChainTransferDPPRequest,
-  ): Promise<GenericResponse>;
+  public abstract crossChainTransferDPP(request: any): Promise<any>;
 
-  public abstract checkCrossChainStatus(
-    request: CheckCrossChainStatusRequest,
-  ): Promise<GenericResponse>;
+  public abstract checkCrossChainStatus(request: any): Promise<any>;
 
-  public abstract verifyDPPAuthenticity(
-    request: VerifyDPPAuthenticityRequest,
-  ): Promise<VerifyDPPAuthenticityResponse>;
+  public abstract verifyDPPAuthenticity(request: any): Promise<any>;
 }
