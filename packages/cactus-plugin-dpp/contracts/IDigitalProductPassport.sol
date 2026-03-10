@@ -35,7 +35,6 @@ interface IDigitalProductPassport {
 
   function createDPP(
     address to,
-    string memory productId,
     string memory productName,
     string memory creationDate,
     string memory metadataURI
