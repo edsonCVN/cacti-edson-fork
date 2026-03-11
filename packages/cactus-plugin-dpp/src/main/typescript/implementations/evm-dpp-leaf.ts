@@ -5,12 +5,6 @@ import {
   LoggerProvider,
 } from "@hyperledger/cactus-common";
 import { DPPAbstract, DPPOptions } from "../dpp-abstract";
-import {
-  CreateDPPRequest,
-  TransferRequest,
-  TransportDataRequest,
-  AggregateRequest,
-} from "../public-api";
 
 // Fallback types for the methods that haven't been generated properly in OpenAPI yet
 export type ReceiveDPPRequest = any;
@@ -80,9 +74,17 @@ export class EVMDPPLeaf extends DPPAbstract {
     "function getDPPComponents(uint256 tokenId) public view returns (uint256[])",
     "function getHistory(uint256 tokenId) public view returns (string[])",
     "function ownerOf(uint256 tokenId) public view returns (address)",
-    "function lockDPP(uint256 tokenId) public",
-    "function unlockDPP(uint256 tokenId) public",
-    "function burnCrossChain(uint256 tokenId) public",
+    "function approve(address to, uint256 tokenId) public",
+    // SATP bridge functions
+    "function lock(address from, address to, uint256 uniqueDescriptor) external returns (bool)",
+    "function unlock(address from, address to, uint256 uniqueDescriptor) external returns (bool)",
+    "function burn(uint256 uniqueDescriptor) external returns (bool)",
+    "function mint(address account, uint256 uniqueDescriptor) external returns (bool)",
+    "function assign(address to, uint256 uniqueDescriptor) external returns (bool)",
+    "function grantBridgeRole(address account) external returns (bool)",
+    "function hasBridgeRole(address account) external view returns (bool)",
+    // ERC721 events (required for queryFilter / filters)
+    "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)",
   ];
 
   constructor(public readonly options: EVMDPPLeafOptions) {
@@ -548,9 +550,23 @@ export class EVMDPPLeaf extends DPPAbstract {
     request: UpdateRetailDataRequest,
   ): Promise<GenericResponse> {
     this.log.debug(`updateRetailData called for DPP: ${request.dppId}`);
-    return this.createSuccessResponse(
-      `Retail data updated for DPP ${request.dppId}`,
-    );
+    try {
+      const rd = request.retailData || {};
+      const tx = await this.dppContract.updateRetailData(
+        request.dppId,
+        rd.location || "Unknown Location",
+        rd.arrivalDate || new Date().toISOString(),
+        rd.shelfLife || "",
+      );
+      await tx.wait();
+      return this.createSuccessResponse(
+        `Retail data updated for DPP ${request.dppId}`,
+        tx.hash,
+      );
+    } catch (error: any) {
+      this.log.error(`updateRetailData exception: ${error.message}`);
+      throw new Error(`Failed to update retail data on EVM: ${error.message}`);
+    }
   }
 
   public async getDPPData(
@@ -634,37 +650,40 @@ export class EVMDPPLeaf extends DPPAbstract {
 
   // Helper method to fetch all minted passports sequentially (since ERC721Enumerable isn't fully exposed)
   public async getAllPassports(): Promise<any[]> {
-    this.log.debug(`getAllPassports called (scraping the chain)`);
-    const allDPPs = [];
-    let consecutiveFailures = 0;
+    this.log.debug(`getAllPassports called (via Transfer events)`);
 
-    // Iterate through token IDs. Burned tokens will revert on ownerOf, so we skip them.
-    // We stop after 5 consecutive failures (meaning we've likely passed the last minted token).
-    for (let i = 0; i < 100; i++) {
+    // Query all mint events (Transfer from address(0)) to discover every token ID ever minted.
+    // This works regardless of how sparse the token ID space is (e.g. demo token #1001).
+    const mintFilter = this.dppContract.filters.Transfer(
+      ethers.constants.AddressZero,
+      null,
+      null,
+    );
+    const mintEvents = await this.dppContract.queryFilter(mintFilter);
+
+    // Deduplicate token IDs (a token can only be minted once, but queryFilter may return dupes)
+    const tokenIds = [...new Set(mintEvents.map((e) => e.args?.tokenId.toString() as string))];
+    this.log.debug(`Found ${tokenIds.length} minted token IDs via events`);
+
+    const allDPPs: any[] = [];
+
+    for (const tokenId of tokenIds) {
       try {
-        // ownerOf reverts for burned/non-existent tokens — use it as existence check
-        const owner = await this.dppContract.ownerOf(i);
-        const dataResponse = await this.getDPPData({ dppId: i });
+        // ownerOf reverts for burned tokens — skip them
+        const owner = await this.dppContract.ownerOf(tokenId);
+        const dataResponse = await this.getDPPData({ dppId: tokenId });
 
         allDPPs.push({
-          id: i.toString(),
-          tokenId: `DPP-000${i}`,
-          name:
-            dataResponse.dppData.productName || dataResponse.dppData.productId,
+          id: tokenId,
+          tokenId,
+          name: dataResponse.dppData.publicData?.productName || dataResponse.dppData.productName || dataResponse.dppData.productId,
           createdAt: dataResponse.dppData.creationDate,
           status: dataResponse.dppData.status.toLowerCase().replace("_", "-"),
           ipfsUri: JSON.stringify(dataResponse.dppData.publicData),
           ownerAddress: owner,
         });
-        consecutiveFailures = 0; // Reset on success
-      } catch (e: any) {
-        consecutiveFailures++;
-        // After 5 consecutive failures we assume we've passed the last minted token
-        if (consecutiveFailures >= 5) {
-          break;
-        }
-        // Otherwise skip this token (it may be burned) and continue
-        continue;
+      } catch {
+        // burned or non-existent — skip
       }
     }
 
@@ -710,7 +729,12 @@ export class EVMDPPLeaf extends DPPAbstract {
       `crossChainTransferDPP called for DPP: ${request.dppId} to target chain ${request.destinationNetwork}`,
     );
     try {
-      const tx = await this.dppContract.lockDPP(request.dppId);
+      const ownerAddress = await this.signer.getAddress();
+      // bridgeAddress can be passed in the request for SATP gateway scenarios.
+      // Falls back to the contract itself, which implements onERC721Received, making
+      // it a valid ERC721 receiver suitable for local/single-chain testing.
+      const bridgeAddress = (request as any).bridgeAddress ?? this.contractAddress;
+      const tx = await this.dppContract.lock(ownerAddress, bridgeAddress, request.dppId);
       await tx.wait();
 
       return this.createSuccessResponse(
