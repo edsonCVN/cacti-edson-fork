@@ -89,5 +89,6 @@
                 "./src/main/json/openapi.json"
             ]
         }
-    }
+    },
+    "type": "module"
 }

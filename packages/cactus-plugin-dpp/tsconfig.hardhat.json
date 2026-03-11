@@ -2,9 +2,15 @@
   "compilerOptions": {
     "target": "es2020",
     "module": "commonjs",
+    "moduleResolution": "node",
     "strict": true,
     "esModuleInterop": true,
     "outDir": "dist"
+  },
+  "ts-node": {
+    "moduleTypes": {
+      "**/*.ts": "cjs"
+    }
   },
   "include": ["hardhat.config.ts", "./scripts", "./test", "./typechain-types"],
   "files": ["./hardhat.config.ts"]

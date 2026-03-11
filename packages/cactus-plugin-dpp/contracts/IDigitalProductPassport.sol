@@ -87,19 +87,14 @@ interface IDigitalProductPassport {
 
   function getHistory(uint256 tokenId) external view returns (string[] memory);
 
-  // --- Cross-Chain SATP Methods ---
+  // --- SATP Bridge-Compatible Methods ---
 
-  function lockDPP(uint256 tokenId) external;
-
-  function unlockDPP(uint256 tokenId) external;
-
-  function burnCrossChain(uint256 tokenId) external;
-
-  function mintCrossChain(
-    address to,
-    string memory productId,
-    string memory productName,
-    string memory creationDate,
-    string memory metadataURI
-  ) external returns (uint256);
+  function lock(address from, address to, uint256 uniqueDescriptor) external returns (bool);
+  function unlock(address from, address to, uint256 uniqueDescriptor) external returns (bool);
+  function mint(address account, uint256 uniqueDescriptor) external returns (bool);
+  function burn(uint256 uniqueDescriptor) external returns (bool);
+  function assign(address to, uint256 uniqueDescriptor) external returns (bool);
+  function grantBridgeRole(address account) external returns (bool);
+  function hasBridgeRole(address account) external view returns (bool);
+  function onERC721Received(address, address, uint256, bytes calldata) external pure returns (bytes4);
 }

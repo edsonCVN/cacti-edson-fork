@@ -6,6 +6,8 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "./IDigitalProductPassport.sol";
 
+error noPermission(address adr);
+
 contract DigitalProductPassport is
   ERC721,
   AccessControl,
@@ -15,6 +17,8 @@ contract DigitalProductPassport is
 
   // --- Role Definitions ---
   bytes32 public constant GATEWAY_ROLE = keccak256("GATEWAY_ROLE");
+  bytes32 public constant OWNER_ROLE = keccak256("OWNER_ROLE");
+  bytes32 public constant BRIDGE_ROLE = keccak256("BRIDGE_ROLE");
   bytes32 public constant FARMER_ROLE = keccak256("FARMER_ROLE");
   bytes32 public constant PROCESSOR_ROLE = keccak256("PROCESSOR_ROLE");
   bytes32 public constant TRANSPORTER_ROLE = keccak256("TRANSPORTER_ROLE");
@@ -28,6 +32,7 @@ contract DigitalProductPassport is
 
   constructor(address initialAdmin) ERC721("DigitalProductPassport", "DPP") {
     _grantRole(DEFAULT_ADMIN_ROLE, initialAdmin);
+    _grantRole(OWNER_ROLE, initialAdmin);
     _grantRole(GATEWAY_ROLE, initialAdmin);
     // Explicitly grant the deployer the supply chain roles for testing/e2e fluidity
     _grantRole(FARMER_ROLE, initialAdmin);
@@ -251,70 +256,119 @@ contract DigitalProductPassport is
     return _history[tokenId];
   }
 
-  // --- Cross-Chain SATP Methods ---
+  // ============================================================
+  //  SATP Hermes Gateway — Bridge-compatible functions
+  //  These follow the exact signatures expected by the SATPWrapper
+  //  bridge contract deployed by the SATP Hermes gateway.
+  // ============================================================
 
-  // A mechanism to lock the asset during SATP Phase 1/Phase 2
-  function lockDPP(uint256 tokenId) public {
-    require(_ownerOf(tokenId) != address(0), "ERC721: invalid token ID");
-    require(_isAuthorized(tokenId), "Caller is not owner nor gateway");
-    require(
-      _dppData[tokenId].state != DPPState.LOCKED_CROSSCHAIN,
-      "DPP is already locked"
-    );
-
-    _dppData[tokenId].state = DPPState.LOCKED_CROSSCHAIN;
-    _addToHistory(tokenId, "Lock", msg.sender);
-  }
-
-  // A mechanism to rollback an asset if SATP fails
-  function unlockDPP(uint256 tokenId) public {
-    require(_ownerOf(tokenId) != address(0), "ERC721: invalid token ID");
-    require(_isAuthorized(tokenId), "Caller is not owner nor gateway");
-    require(
-      _dppData[tokenId].state == DPPState.LOCKED_CROSSCHAIN,
-      "DPP is not locked"
-    );
-
-    _dppData[tokenId].state = DPPState.CREATED; // Reset to a safe state
-    _addToHistory(tokenId, "Unlock", msg.sender);
-  }
-
-  // Burn the asset locally during Commit Final Phase (Phase 3)
-  function burnCrossChain(uint256 tokenId) public {
-    require(_ownerOf(tokenId) != address(0), "ERC721: invalid token ID");
-    require(_isAuthorized(tokenId), "Caller is not owner nor gateway");
-    require(
-      _dppData[tokenId].state == DPPState.LOCKED_CROSSCHAIN,
-      "DPP must be locked first"
-    );
-
-    _burn(tokenId);
-    _dppData[tokenId].state = DPPState.REVOKED; // Assuming Burned means Revoked locally
-    _addToHistory(tokenId, "CrossChainBurn", msg.sender);
-  }
-
-  // Mint the asset on the destination ledger
-  function mintCrossChain(
+  /**
+   * @notice SATP lock — transfers the NFT from owner to bridge custody.
+   */
+  function lock(
+    address from,
     address to,
-    string memory productId,
-    string memory productName,
-    string memory creationDate,
-    string memory metadataURI
-  ) public onlyRole(GATEWAY_ROLE) returns (uint256) {
-    uint256 tokenId = _nextTokenId++;
+    uint256 uniqueDescriptor
+  ) external returns (bool) {
+    _dppData[uniqueDescriptor].state = DPPState.LOCKED_CROSSCHAIN;
+    _addToHistory(uniqueDescriptor, "SATPLock", msg.sender);
+    safeTransferFrom(from, to, uniqueDescriptor);
+    return true;
+  }
 
-    _dppData[tokenId] = DPPData({
-      productId: productId,
-      productName: productName,
+  /**
+   * @notice SATP unlock — returns NFT from bridge to owner (rollback).
+   */
+  function unlock(
+    address from,
+    address to,
+    uint256 uniqueDescriptor
+  ) external returns (bool) {
+    _dppData[uniqueDescriptor].state = DPPState.CREATED;
+    _addToHistory(uniqueDescriptor, "SATPUnlock", msg.sender);
+    safeTransferFrom(from, to, uniqueDescriptor);
+    return true;
+  }
+
+  /**
+   * @notice SATP burn — destroys the NFT on the source chain.
+   */
+  function burn(uint256 uniqueDescriptor) external onlyRole(BRIDGE_ROLE) returns (bool) {
+    _dppData[uniqueDescriptor].state = DPPState.REVOKED;
+    _addToHistory(uniqueDescriptor, "SATPBurn", msg.sender);
+    _burn(uniqueDescriptor);
+    return true;
+  }
+
+  /**
+   * @notice SATP mint — creates an NFT on the destination chain.
+   *         Metadata is set to placeholders; use amendDPPData to fill in later.
+   */
+  function mint(
+    address account,
+    uint256 uniqueDescriptor
+  ) external onlyRole(BRIDGE_ROLE) returns (bool) {
+    // Keep _nextTokenId consistent to avoid future collisions
+    if (uniqueDescriptor >= _nextTokenId) {
+      _nextTokenId = uniqueDescriptor + 1;
+    }
+
+    _dppData[uniqueDescriptor] = DPPData({
+      productId: string(abi.encodePacked("DPP-", Strings.toString(uniqueDescriptor))),
+      productName: "Cross-Chain DPP",
       state: DPPState.CREATED,
-      creationDate: creationDate,
-      additionalMetadataURI: metadataURI
+      creationDate: "",
+      additionalMetadataURI: ""
     });
 
-    _addToHistory(tokenId, "CrossChainMint", msg.sender);
+    _addToHistory(uniqueDescriptor, "SATPMint", msg.sender);
+    _safeMint(account, uniqueDescriptor);
+    return true;
+  }
 
-    // Checks-Effects-Interactions
-    _safeMint(to, tokenId);
-    return tokenId;
+  /**
+   * @notice SATP assign — transfers NFT to the final receiver after minting.
+   */
+  function assign(
+    address to,
+    uint256 uniqueDescriptor
+  ) external returns (bool) {
+    address currentOwner = ownerOf(uniqueDescriptor);
+    _addToHistory(uniqueDescriptor, "SATPAssign", msg.sender);
+    safeTransferFrom(currentOwner, to, uniqueDescriptor);
+    return true;
+  }
+
+  /**
+   * @notice Grants BRIDGE_ROLE to an address (for SATPWrapper).
+   */
+  function grantBridgeRole(
+    address account
+  ) external onlyRole(OWNER_ROLE) returns (bool) {
+    _grantRole(BRIDGE_ROLE, account);
+    return true;
+  }
+
+  /**
+   * @notice Checks if an address has the BRIDGE_ROLE. Reverts if not.
+   */
+  function hasBridgeRole(address account) external view returns (bool) {
+    if (hasRole(BRIDGE_ROLE, account)) {
+      return true;
+    }
+    revert noPermission(account);
+  }
+
+  /**
+   * @notice ERC721 receiver callback — required so the contract can hold NFTs
+   *         during SATP lock phase (bridge transfers NFTs to itself).
+   */
+  function onERC721Received(
+    address,
+    address,
+    uint256,
+    bytes calldata
+  ) external pure returns (bytes4) {
+    return this.onERC721Received.selector;
   }
 }
