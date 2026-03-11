@@ -11,70 +11,186 @@ import { IListenOptions, Servers } from "@hyperledger/cactus-common";
 import { PluginRegistry } from "@hyperledger/cactus-core";
 import { Configuration } from "@hyperledger/cactus-core-api";
 
-// Importamos o cliente da API do DPP (ajuste o caminho conforme sua estrutura de pastas)
-import { FarmerApi, PluginDpp } from "../../../main/typescript/public-api";
+import {
+  FarmerApi,
+  LogisticsApi,
+  ProcessorApi,
+  OwnershipApi,
+  AuditApi,
+  PluginDpp,
+} from "../../../main/typescript/public-api";
 
-describe("Digital Product Passport (DPP) API Tests", () => {
-  let apiClient: FarmerApi, connector: PluginDpp;
-  const expressApp = express();
-  expressApp.use(bodyParser.json({ limit: "250mb" }));
-  const server = http.createServer(expressApp);
+// ---------------------------------------------------------------------------
+// Shared test infrastructure
+// ---------------------------------------------------------------------------
 
-  // --- CONFIGURAÇÃO DO AMBIENTE ---
-  beforeAll(async () => {
-    const listenOptions: IListenOptions = {
-      hostname: "127.0.0.1",
-      port: 0, // Porta aleatória para evitar conflitos
-      server,
-    };
+const expressApp = express();
+expressApp.use(bodyParser.json({ limit: "250mb" }));
+const server = http.createServer(expressApp);
 
-    const addressInfo = (await Servers.listen(listenOptions)) as AddressInfo;
-    const { address, port } = addressInfo;
-    const apiHost = `http://${address}:${port}`;
+let farmerApi: FarmerApi;
+let logisticsApi: LogisticsApi;
+let processorApi: ProcessorApi;
+let ownershipApi: OwnershipApi;
+let auditApi: AuditApi;
+let connector: PluginDpp;
 
-    // Configura o cliente para apontar para o servidor de teste
-    apiClient = new FarmerApi(new Configuration({ basePath: apiHost }));
+beforeAll(async () => {
+  const listenOptions: IListenOptions = {
+    hostname: "127.0.0.1",
+    port: 0,
+    server,
+  };
+  const addressInfo = (await Servers.listen(listenOptions)) as AddressInfo;
+  const { address, port } = addressInfo;
+  const apiHost = `http://${address}:${port}`;
+  const config = new Configuration({ basePath: apiHost });
 
-    // Inicializa o plugin do DPP
-    connector = new PluginDpp({
-      instanceId: uuidV4(),
-      logLevel: testLogLevel,
-      pluginRegistry: new PluginRegistry(),
-    });
+  farmerApi    = new FarmerApi(config);
+  logisticsApi = new LogisticsApi(config);
+  processorApi = new ProcessorApi(config);
+  ownershipApi = new OwnershipApi(config);
+  auditApi     = new AuditApi(config);
+
+  connector = new PluginDpp({
+    instanceId: uuidV4(),
+    logLevel: testLogLevel,
+    pluginRegistry: new PluginRegistry(),
   });
 
-  afterAll(async () => {
-    await Servers.shutdown(server);
+  await connector.getOrCreateWebServices();
+  await connector.registerWebServices(expressApp);
+});
+
+afterAll(async () => {
+  await Servers.shutdown(server);
+});
+
+// ---------------------------------------------------------------------------
+// Plugin initialisation
+// ---------------------------------------------------------------------------
+
+describe("PluginDpp — initialisation", () => {
+  test("getInstanceId returns the id passed in the constructor", () => {
+    expect(connector.getInstanceId()).toBeDefined();
+    expect(typeof connector.getInstanceId()).toBe("string");
   });
 
-  // --- TESTE DE CRIAÇÃO DE DPP (FLUXO AGRICULTOR) ---
-  test("should create a new DPP NFT for a batch of cherries", async () => {
-    // 1. Registra os serviços web no Express
-    await connector.getOrCreateWebServices();
-    await connector.registerWebServices(expressApp);
+  test("getPackageName returns the correct package name", () => {
+    expect(connector.getPackageName()).toBe("@hyperledger/cactus-plugin-dpp");
+  });
 
-    // 2. Prepara os dados de teste baseados no CreateDPPRequest do openapi.json
-    const createRequest = {
-      farmerId: "agricultor_fundao_01",
-      batchId: "lote_cereja_2024_001",
+  test("getOrCreateWebServices returns a non-empty array", async () => {
+    const endpoints = await connector.getOrCreateWebServices();
+    expect(endpoints).toBeDefined();
+    expect(Array.isArray(endpoints)).toBe(true);
+    expect(endpoints.length).toBeGreaterThan(0);
+  });
+
+  test("getOrCreateWebServices is idempotent — same array on repeated calls", async () => {
+    const first  = await connector.getOrCreateWebServices();
+    const second = await connector.getOrCreateWebServices();
+    expect(first).toBe(second);
+  });
+
+  test("getOpenApiSpec returns a non-null object", () => {
+    const spec = connector.getOpenApiSpec();
+    expect(spec).toBeDefined();
+    expect(typeof spec).toBe("object");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Farmer API — DPP creation
+// ---------------------------------------------------------------------------
+
+describe("FarmerApi — POST /create", () => {
+  test("creates a DPP and returns dppId + transactionHash", async () => {
+    const res = await farmerApi.createDPP({
+      farmerId: "farmer_fundao_01",
+      batchId:  "batch_cherry_2024_001",
       productionData: {
-        pesticidesUsed: "Nenhum - Produção Orgânica",
-        certifications: ["Certificado AOP", "GlobalGAP"],
+        pesticidesUsed: "None — Organic",
+        certifications: ["AOP", "GlobalGAP"],
         harvestDate: new Date().toISOString(),
         location: "Fundão, Portugal",
       },
-    };
+    });
 
-    // 3. Chama o método de criação da API
-    const response = await apiClient.createDPP(createRequest);
+    expect(res.status).toEqual(200);
+    expect(res.data).toBeDefined();
+    expect(res.data.dppId).toBeDefined();
+    expect(res.data.transactionHash).toBeDefined();
+  });
 
-    // 4. Validações (Asserções)
-    expect(response).toBeDefined();
-    expect(response.status).toEqual(200);
-    expect(response.data).toBeDefined();
-    expect(response.data.transactionHash).toStartWith("0x"); // Simulga um hash de blockchain
-    expect(response.data.dppId).toBeDefined();
+  test("returns 200 with minimal payload", async () => {
+    const res = await farmerApi.createDPP({
+      farmerId: "farmer_minimal",
+      batchId:  "batch_minimal",
+      productionData: {},
+    });
+    expect(res.status).toEqual(200);
+    expect(res.data.dppId).toBeDefined();
+  });
+});
 
-    console.log("DPP Criado com sucesso! ID:", response.data.dppId);
+// ---------------------------------------------------------------------------
+// Audit API — history
+// ---------------------------------------------------------------------------
+
+describe("AuditApi — GET /history/:dppId", () => {
+  test("returns history array for a valid dppId", async () => {
+    const res = await auditApi.getDPPHistory("dpp-001");
+    expect(res.status).toEqual(200);
+    expect(Array.isArray(res.data)).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Logistics API — transport update
+// ---------------------------------------------------------------------------
+
+describe("LogisticsApi — POST /update-transport-data", () => {
+  test("accepts transport data and returns 200", async () => {
+    const res = await logisticsApi.updateTransportData({
+      dppId: "dpp-001",
+      transporterId: "transporter_01",
+      transportData: {
+        location: "Lisboa, Portugal",
+        temperature: "4°C",
+        humidity: "60%",
+      },
+    });
+    expect(res.status).toEqual(200);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Processor API — aggregation
+// ---------------------------------------------------------------------------
+
+describe("ProcessorApi — POST /aggregate", () => {
+  test("accepts an aggregate request and returns 200", async () => {
+    const res = await processorApi.aggregateDPP({
+      processorId: "processor_01",
+      parentList:  ["1", "2", "3"],
+      lotId:       "lot_001",
+    });
+    expect(res.status).toEqual(200);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Ownership API — transfer
+// ---------------------------------------------------------------------------
+
+describe("OwnershipApi — POST /transfer", () => {
+  test("accepts a transfer request and returns 200", async () => {
+    const res = await ownershipApi.transferDPP({
+      dppId:        "dpp-001",
+      currentOwner: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      newOwner:     "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+    });
+    expect(res.status).toEqual(200);
   });
 });

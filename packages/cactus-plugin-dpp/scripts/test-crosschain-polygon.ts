@@ -12,7 +12,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
-// @ts-ignore
+// @ts-expect-error — no type declarations for solc
 import * as solc from "solc";
 import { ethers } from "ethers";
 import { EVMDPPLeaf } from "../src/main/typescript/implementations/evm-dpp-leaf";
