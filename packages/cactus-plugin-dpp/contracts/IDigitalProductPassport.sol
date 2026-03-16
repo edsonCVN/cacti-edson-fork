@@ -26,7 +26,8 @@ interface IDigitalProductPassport {
   }
 
   struct TransportEvent {
-    string location;
+    string locationFrom;
+    string locationTo;
     string timestamp;
     string conditionData;
   }
@@ -46,7 +47,8 @@ interface IDigitalProductPassport {
 
   function updateTransportData(
     uint256 tokenId,
-    string memory location,
+    string memory locationFrom,
+    string memory locationTo,
     string memory timestamp,
     string memory conditionData
   ) external;

@@ -174,7 +174,8 @@ async function main() {
 
   // Supply-chain write endpoints (for chain-2 participants after receiving DPPs)
   app.post(`${base}/update-transport-data`, async (req, res) => {
-    try { res.json(await leafFor(req.body.handlerAddress).updateTransportData(req.body)); }
+    const addr = req.body.handlerAddress || req.body.transportData?.handlerAddress;
+    try { res.json(await leafFor(addr).updateTransportData(req.body)); }
     catch (e: any) { res.status(500).json({ error: e.message }); }
   });
 

@@ -29,7 +29,7 @@ A Digital Product Passport is an ERC-721 NFT that carries structured metadata ab
                                ▼                          ▼
                     ┌──────────────────┐    ┌───────────────────────┐
                     │  Chain 1         │    │  SATP Hermes Gateway-1│
-                    │  Hardhat / Anvil │    │  Port 4010            │
+                    │  EVM Local Node │    │  Port 4010            │
                     │  Port 8545       │    └───────────┬───────────┘
                     └──────────────────┘                │ SATP protocol
                                                         ▼
@@ -47,7 +47,7 @@ A Digital Product Passport is an ERC-721 NFT that carries structured metadata ab
                                             ▼
                                  ┌──────────────────┐
                                  │  Chain 2         │
-                                 │  Hardhat / Anvil │
+                                 │  EVM Local Node │
                                  │  Port 8546       │
                                  └──────────────────┘
 
@@ -151,7 +151,7 @@ These match the exact signatures expected by the SATPWrapper bridge contract dep
 ### Prerequisites
 
 - Node.js >= 18
-- [Anvil](https://book.getfoundry.sh/anvil/) or [Hardhat node](https://hardhat.org) for local blockchain
+- [Hardhat node](https://hardhat.org) or [Anvil](https://book.getfoundry.sh/anvil/) for local EVM blockchain
 - Docker (for SATP Hermes Gateway containers)
 
 ---
@@ -464,7 +464,7 @@ This means any DPP — including ones created after the initial deployment — c
 ### Run Tests
 
 ```bash
-# End-to-end DPP lifecycle + SATP bridge functions (requires Anvil on port 8545)
+# End-to-end DPP lifecycle + SATP bridge functions (requires EVM local node on port 8545)
 npx ts-node --project tsconfig.hardhat.json scripts/test-satp-dpp.ts
 
 # Cross-chain transfer test (lock mechanism, single chain)

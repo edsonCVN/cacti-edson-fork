@@ -63,13 +63,13 @@ export class EVMDPPLeaf extends DPPAbstract {
     "function transferDPP(uint256 tokenId, address newOwner) public",
     "function amendDPPData(uint256 tokenId, string memory newMetadataURI) public",
     "function addCertification(uint256 tokenId, string memory certId) public",
-    "function updateTransportData(uint256 tokenId, string memory location, string memory timestamp, string memory conditionData) public",
+    "function updateTransportData(uint256 tokenId, string memory locationFrom, string memory locationTo, string memory timestamp, string memory conditionData) public",
     "function markAsReceived(uint256 tokenId) public",
     "function updateRetailData(uint256 tokenId, string memory location, string memory arrivalDate, string memory shelfLife) public",
     "function aggregateDPPs(address to, string memory parentProductId, string memory metadataURI, uint256[] memory childTokenIds) public returns (uint256)",
     "function revokeDPP(uint256 tokenId, string memory reason) public",
     "function getDPPData(uint256 tokenId) public view returns (tuple(string productId, string productName, uint8 state, string creationDate, string additionalMetadataURI))",
-    "function getTransportHistory(uint256 tokenId) public view returns (tuple(string location, string timestamp, string conditionData)[])",
+    "function getTransportHistory(uint256 tokenId) public view returns (tuple(string locationFrom, string locationTo, string timestamp, string conditionData)[])",
     "function getCertifications(uint256 tokenId) public view returns (string[])",
     "function getDPPComponents(uint256 tokenId) public view returns (uint256[])",
     "function getHistory(uint256 tokenId) public view returns (string[])",
@@ -363,6 +363,32 @@ export class EVMDPPLeaf extends DPPAbstract {
         }
       }
 
+      // Enrich events with contextual data from on-chain mappings
+      try {
+        const [transportHistory, certifications] = await Promise.all([
+          this.dppContract.getTransportHistory(request.dppId),
+          this.dppContract.getCertifications(request.dppId),
+        ]);
+
+        let transportIdx = 0;
+        let certIdx = 0;
+
+        for (const entry of allHistory) {
+          if (entry.childDppId) continue; // skip child events
+          if (entry.event === "Transport" && transportIdx < transportHistory.length) {
+            const t = transportHistory[transportIdx++];
+            entry.locationFrom = t.locationFrom;
+            entry.locationTo = t.locationTo;
+            entry.conditionData = t.conditionData;
+          } else if (entry.event === "Certification" && certIdx < certifications.length) {
+            const raw = certifications[certIdx++];
+            try { entry.certification = JSON.parse(raw); } catch { entry.certification = raw; }
+          }
+        }
+      } catch {
+        // enrichment is best-effort
+      }
+
       // Sort by timestamp
       allHistory.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
@@ -526,14 +552,47 @@ export class EVMDPPLeaf extends DPPAbstract {
   ): Promise<GenericResponse> {
     this.log.debug(`updateTransportData called for DPP: ${request.dppId}`);
     try {
-      const condString = JSON.stringify(request.transportData);
+      const td = request.transportData || {};
+      const locationFrom = td.locationFrom || "Unknown";
+      const locationTo = td.locationTo || "Unknown";
+      const timestamp = td.timestamp || new Date().toISOString();
+      const conditionData = td.conditionData || "N/A";
+
       const tx = await this.dppContract.updateTransportData(
         request.dppId,
-        "Unknown Location", // The OpenAPI schema might be sparse, defaulting strings
-        new Date().toISOString(),
-        condString,
+        locationFrom,
+        locationTo,
+        timestamp,
+        conditionData,
       );
       await tx.wait();
+
+      // Also persist the shipping entry in the on-chain metadata (publicData)
+      try {
+        const dppData = await this.dppContract.getDPPData(request.dppId);
+        let publicData: any = {};
+        try { publicData = JSON.parse(dppData.additionalMetadataURI); } catch { /* empty */ }
+
+        if (!publicData.logistics) publicData.logistics = {};
+        if (!Array.isArray(publicData.logistics.shipments)) publicData.logistics.shipments = [];
+
+        publicData.logistics.shipments.push({
+          from: locationFrom,
+          to: locationTo,
+          date: timestamp,
+          condition: conditionData,
+          handler: td.handler || "Unknown",
+        });
+
+        const amendTx = await this.dppContract.amendDPPData(
+          request.dppId,
+          JSON.stringify(publicData),
+        );
+        await amendTx.wait();
+      } catch (amendErr: any) {
+        this.log.warn(`Shipping metadata amend failed (non-fatal): ${amendErr.message}`);
+      }
+
       return this.createSuccessResponse(
         `Transport data updated for DPP ${request.dppId}`,
         tx.hash,
@@ -551,14 +610,30 @@ export class EVMDPPLeaf extends DPPAbstract {
   ): Promise<GenericResponse> {
     this.log.debug(`updateRetailData called for DPP: ${request.dppId}`);
     try {
-      const rd = request.retailData || {};
+      const rd = request.retailData || request;
+      const shelfLife = rd.shelfLife || "";
+      const price = rd.price || "";
       const tx = await this.dppContract.updateRetailData(
         request.dppId,
         rd.location || "Unknown Location",
         rd.arrivalDate || new Date().toISOString(),
-        rd.shelfLife || "",
+        shelfLife,
       );
       await tx.wait();
+
+      // Persist retail info in metadata
+      try {
+        const dppData = await this.dppContract.getDPPData(request.dppId);
+        let publicData: any = {};
+        try { publicData = JSON.parse(dppData.additionalMetadataURI); } catch {}
+        if (shelfLife) publicData.shelfLife = shelfLife;
+        if (price) publicData.price = price;
+        const amendTx = await this.dppContract.amendDPPData(request.dppId, JSON.stringify(publicData));
+        await amendTx.wait();
+      } catch (amendErr: any) {
+        this.log.warn(`Retail metadata amend failed (non-fatal): ${amendErr.message}`);
+      }
+
       return this.createSuccessResponse(
         `Retail data updated for DPP ${request.dppId}`,
         tx.hash,

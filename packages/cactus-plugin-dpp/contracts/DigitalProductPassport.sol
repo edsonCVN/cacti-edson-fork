@@ -100,9 +100,15 @@ contract DigitalProductPassport is
   function amendDPPData(
     uint256 tokenId,
     string memory newMetadataURI
-  ) public onlyRole(PROCESSOR_ROLE) {
+  ) public {
     require(_ownerOf(tokenId) != address(0), "ERC721: invalid token ID");
-    require(_isAuthorized(tokenId), "Caller is not owner nor gateway");
+    require(
+      hasRole(PROCESSOR_ROLE, msg.sender) ||
+      hasRole(TRANSPORTER_ROLE, msg.sender) ||
+      hasRole(RETAILER_ROLE, msg.sender) ||
+      hasRole(GATEWAY_ROLE, msg.sender),
+      "Caller lacks amend permission"
+    );
 
     _dppData[tokenId].additionalMetadataURI = newMetadataURI;
     _addToHistory(tokenId, "Amend", msg.sender);
@@ -121,7 +127,8 @@ contract DigitalProductPassport is
 
   function updateTransportData(
     uint256 tokenId,
-    string memory location,
+    string memory locationFrom,
+    string memory locationTo,
     string memory timestamp,
     string memory conditionData
   ) public onlyRole(TRANSPORTER_ROLE) {
@@ -129,7 +136,7 @@ contract DigitalProductPassport is
 
     _dppData[tokenId].state = DPPState.IN_TRANSIT;
     _transportHistory[tokenId].push(
-      TransportEvent(location, timestamp, conditionData)
+      TransportEvent(locationFrom, locationTo, timestamp, conditionData)
     );
     _addToHistory(tokenId, "Transport", msg.sender);
   }

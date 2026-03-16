@@ -136,7 +136,7 @@ async function main() {
   const createRes1 = await plugin.createDPP({
     owner: await deployer.getAddress(),
     productionData: {
-      name: "Cereja do Fundão IGP - Lote #2001",
+      name: "dão IGP - Lote #2001",
       description: "Caixa de 2kg de cerejas Saco, colhidas à mão.",
       createdAt: "2025-06-15",
       origin: "Fundão, Portugal",
@@ -204,7 +204,7 @@ async function main() {
     const res = await plugin.createDPP({
       owner: await deployer.getAddress(),
       productionData: {
-        name: `Cereja do Fundão IGP - Lote #300${i + 1}`,
+        name: `dão IGP - Lote #300${i + 1}`,
         description: `Caixa ${i + 1} de 2kg — variedade Burlat.`,
         createdAt: "2025-06-20",
         origin: "Fundão, Portugal",

@@ -51,6 +51,7 @@ function compileContract() {
     sources: { "DigitalProductPassport.sol": { content: source } },
     settings: {
       evmVersion: "cancun",
+      optimizer: { enabled: true, runs: 200 },
       outputSelection: { "*": { "*": ["abi", "evm.bytecode"] } },
     },
   };
@@ -250,7 +251,8 @@ async function main() {
   });
 
   app.post(`${base}/update-transport-data`, async (req, res) => {
-    try { res.json(await leafFor(req.body.handlerAddress).updateTransportData(req.body)); }
+    const addr = req.body.handlerAddress || req.body.transportData?.handlerAddress;
+    try { res.json(await leafFor(addr).updateTransportData(req.body)); }
     catch (e: any) { res.status(500).json({ error: e.message }); }
   });
 
