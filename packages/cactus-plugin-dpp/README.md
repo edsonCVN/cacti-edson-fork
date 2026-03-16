@@ -10,7 +10,8 @@ A Digital Product Passport is an ERC-721 NFT that carries structured metadata ab
 
 - **Role-Based Access Control (RBAC)** — Seven roles (`FARMER`, `PROCESSOR`, `TRANSPORTER`, `RETAILER`, `GATEWAY`, `OWNER`, `ADMIN`) enforced on-chain via OpenZeppelin `AccessControl`
 - **Structured On-Chain History** — Every lifecycle event is stored as JSON with actor address and block timestamp
-- **DPP Aggregation** — Combine multiple child DPPs into a parent lot; children are burned and their metadata/history is merged
+- **DPP Aggregation** — Combine multiple child DPPs into a parent lot; children are revoked (`notRevoked` modifier) and their metadata/history is merged
+- **DPP Disaggregation** — Split a single DPP into N independent child DPPs; the origin is revoked and each child inherits the original metadata and certifications
 - **SATP Cross-Chain Transfers** — Full SATP Hermes Gateway compatibility: `lock`, `unlock`, `burn`, `mint`, `assign` with exact function signatures expected by the SATPWrapper bridge contract
 - **Ontology-Driven Gateway** — An ontology JSON file maps SATP protocol phases to the contract's Solidity function signatures, following the SATP Case 2 (EVM NFA transfer) pattern
 - **Dual-mode API Gateway** — Shares the same contract with the SATP gateways when `deployed-addresses.json` exists; falls back to standalone deploy otherwise
@@ -87,8 +88,10 @@ packages/cactus-plugin-dpp/
     ├── dpp-abstract.ts                    # Abstract base class for DPP implementations
     ├── implementations/
     │   └── evm-dpp-leaf.ts                # EVM implementation (ethers.js v5)
-    ├── types.ts                           # Shared TypeScript types
+    ├── plugin-dpp.ts                      # Main plugin class (registers endpoints)
+    ├── plugin-factory-dpp.ts              # Plugin factory
     ├── public-api.ts                      # Exported API surface
+    ├── generated/openapi/typescript-axios/ # Auto-generated types from openapi.json
     └── web-services/                      # OpenAPI endpoint handlers
 ```
 
@@ -114,9 +117,17 @@ packages/cactus-plugin-dpp/
 ```
 CREATED → IN_TRANSIT → RECEIVED → RETAIL
     │
-    └→ LOCKED_CROSSCHAIN → (burned via SATP after commit)
-    └→ REVOKED
+    ├→ LOCKED_CROSSCHAIN → (burned via SATP after commit)
+    ├→ REVOKED   (via revokeDPP, aggregation, or disaggregation)
+    │
+    └→ disaggregateDPP → origin REVOKED, N new DPPs CREATED
+       aggregateDPPs   → children REVOKED, parent LOT CREATED
 ```
+
+> **`notRevoked` modifier** — All state-changing functions on the smart contract
+> check `require(dppData[tokenId].status != DPPDataStatus.REVOKED)`, preventing
+> any further operations on revoked DPPs (aggregated children, disaggregated
+> origins, or manually revoked passports).
 
 ### Supply Chain Functions
 
@@ -128,7 +139,8 @@ CREATED → IN_TRANSIT → RECEIVED → RETAIL
 | `updateTransportData` | Transporter | Record location, timestamp, and conditions |
 | `markAsReceived` | Retailer | Set state to `RECEIVED` |
 | `updateRetailData` | Retailer | Set state to `RETAIL` |
-| `aggregateDPPs` | Processor | Create a parent `LOT-{id}`, burn children |
+| `aggregateDPPs` | Processor | Create a parent `LOT-{id}`, revoke children |
+| `disaggregateDPP` | Processor | Split a DPP into N new children, revoke origin |
 | `transferDPP` | Owner/Admin | Transfer ownership with history tracking |
 | `revokeDPP` | Owner/Gateway | Permanently revoke a DPP |
 
@@ -487,6 +499,7 @@ All endpoints are prefixed with `/api/v1/@hyperledger/cactus-plugin-dpp`.
 | `POST` | `/create` | Create a new DPP |
 | `POST` | `/transfer` | Transfer DPP ownership |
 | `POST` | `/aggregate` | Aggregate multiple DPPs into a lot |
+| `POST` | `/disaggregate` | Split a DPP into N independent child DPPs |
 | `POST` | `/update-transport-data` | Record transport event |
 | `POST` | `/mark-as-received` | Mark DPP as received |
 | `POST` | `/update-retail-data` | Update retail information |
@@ -500,9 +513,17 @@ All endpoints are prefixed with `/api/v1/@hyperledger/cactus-plugin-dpp`.
 
 When DPPs are aggregated into a lot:
 
-1. **On-chain**: Child DPPs are burned (state set to `REVOKED`), a parent DPP is minted with auto-generated `LOT-{id}`, and child token IDs are stored in `_dppComponents`
+1. **On-chain**: Child DPPs are **revoked** (state set to `REVOKED`, enforced by the `notRevoked` modifier), a parent DPP is minted with auto-generated `LOT-{id}`, and child token IDs are stored in `_dppComponents`
 2. **Off-chain (backend)**: The parent inherits merged metadata from all children — varieties, calibres, origins, and certifications are deduplicated and combined
-3. **History**: When querying the parent's history, the backend reads children's history (persisted in storage even after burn) and merges it with the parent's own events, sorted by timestamp
+3. **History**: When querying the parent's history, the backend reads children's history (persisted in storage even after revocation) and merges it with the parent's own events, sorted by timestamp
+
+## Disaggregation
+
+When a DPP is disaggregated (split):
+
+1. **On-chain**: The origin DPP is **revoked** (state set to `REVOKED`), and `count` new DPPs are minted. Each child carries a `split-from: {originId}` reference in its history
+2. **Off-chain (backend)**: Each new child inherits the original metadata and certifications from the origin DPP
+3. **Constraints**: `count` must be between 2 and 20; the origin must not already be revoked (`notRevoked` modifier)
 
 ## Account Mapping
 

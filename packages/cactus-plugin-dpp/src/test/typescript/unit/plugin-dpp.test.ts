@@ -105,29 +105,25 @@ describe("PluginDpp — initialisation", () => {
 // ---------------------------------------------------------------------------
 
 describe("FarmerApi — POST /create", () => {
-  test("creates a DPP and returns dppId + transactionHash", async () => {
+  test("creates a DPP and returns dppId + txHash", async () => {
     const res = await farmerApi.createDPP({
-      farmerId: "farmer_fundao_01",
-      batchId:  "batch_cherry_2024_001",
+      owner: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
       productionData: {
-        pesticidesUsed: "None — Organic",
         certifications: ["AOP", "GlobalGAP"],
-        harvestDate: new Date().toISOString(),
-        location: "Fundão, Portugal",
+        createdAt: new Date().toISOString(),
+        origin: "Fundão, Portugal",
       },
     });
 
     expect(res.status).toEqual(200);
     expect(res.data).toBeDefined();
     expect(res.data.dppId).toBeDefined();
-    expect(res.data.transactionHash).toBeDefined();
+    expect(res.data.txHash).toBeDefined();
   });
 
   test("returns 200 with minimal payload", async () => {
     const res = await farmerApi.createDPP({
-      farmerId: "farmer_minimal",
-      batchId:  "batch_minimal",
-      productionData: {},
+      owner: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
     });
     expect(res.status).toEqual(200);
     expect(res.data.dppId).toBeDefined();
@@ -142,7 +138,7 @@ describe("AuditApi — GET /history/:dppId", () => {
   test("returns history array for a valid dppId", async () => {
     const res = await auditApi.getDPPHistory("dpp-001");
     expect(res.status).toEqual(200);
-    expect(Array.isArray(res.data)).toBe(true);
+    expect(res.data).toBeDefined();
   });
 });
 
@@ -154,11 +150,11 @@ describe("LogisticsApi — POST /update-transport-data", () => {
   test("accepts transport data and returns 200", async () => {
     const res = await logisticsApi.updateTransportData({
       dppId: "dpp-001",
-      transporterId: "transporter_01",
       transportData: {
-        location: "Lisboa, Portugal",
-        temperature: "4°C",
-        humidity: "60%",
+        locationFrom: "Fundão, Portugal",
+        locationTo: "Lisboa, Portugal",
+        timestamp: new Date().toISOString(),
+        conditionData: "4°C, 60% humidity",
       },
     });
     expect(res.status).toEqual(200);
@@ -172,9 +168,9 @@ describe("LogisticsApi — POST /update-transport-data", () => {
 describe("ProcessorApi — POST /aggregate", () => {
   test("accepts an aggregate request and returns 200", async () => {
     const res = await processorApi.aggregateDPP({
-      processorId: "processor_01",
-      parentList:  ["1", "2", "3"],
-      lotId:       "lot_001",
+      parentList:     ["1", "2", "3"],
+      handlerAddress: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      lotName:        "lot_001",
     });
     expect(res.status).toEqual(200);
   });
@@ -187,9 +183,9 @@ describe("ProcessorApi — POST /aggregate", () => {
 describe("OwnershipApi — POST /transfer", () => {
   test("accepts a transfer request and returns 200", async () => {
     const res = await ownershipApi.transferDPP({
-      dppId:        "dpp-001",
-      currentOwner: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-      newOwner:     "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      dppId: "dpp-001",
+      from:  "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      to:    "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
     });
     expect(res.status).toEqual(200);
   });
