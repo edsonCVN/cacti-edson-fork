@@ -6,36 +6,77 @@ import {
 } from "@hyperledger/cactus-common";
 import { DPPAbstract, DPPOptions } from "../dpp-abstract";
 
-// Fallback types for the methods that haven't been generated properly in OpenAPI yet
-export type ReceiveDPPRequest = any;
-export type AmendDPPDataRequest = any;
-export type AddCertificationRequest = any;
-export type RevokeDPPRequest = any;
-export type ListOwnedDPPsRequest = any;
-export type ListOwnedDPPsResponse = any;
-export type GetDPPHistoryRequest = any;
-export type GetDPPHistoryResponse = any;
-export type AggregateDPPtoBoxRequest = any;
-export type AggregateDPPtoBoxResponse = any;
-export type AggregateDPPtoLotRequest = any;
-export type AggregateDPPtoLotResponse = any;
-export type GetDPPComponentsRequest = any;
-export type GetDPPComponentsResponse = any;
-export type SearchDPPByCriteriaRequest = any;
-export type SearchDPPByCriteriaResponse = any;
-export type UpdateTransportDataRequest = any;
-export type UpdateRetailDataRequest = any;
-export type GetDPPDataRequest = any;
-export type GetDPPDataResponse = any;
-export type GetRecyclingInfoRequest = any;
-export type GetRecyclingInfoResponse = any;
-export type SubmitProductReviewRequest = any;
-export type SubscribeToUpdatesRequest = any;
-export type CrossChainTransferDPPRequest = any;
-export type CheckCrossChainStatusRequest = any;
-export type VerifyDPPAuthenticityRequest = any;
-export type VerifyDPPAuthenticityResponse = any;
-export type GenericResponse = any;
+// All types imported from generated OpenAPI spec
+import {
+  type AddCertificationRequest,
+  AggregateDPPRequest,
+  AggregateDPPResponse,
+  AmendDPPDataRequest,
+  CheckCrossChainStatusRequest,
+  CrossChainTransferDPPRequest,
+  DisaggregateDPPRequest,
+  DisaggregateDPPResponse,
+  GenericResponse,
+  GetDPPComponentsRequest,
+  GetDPPComponentsResponse,
+  GetDPPDataRequest,
+  GetDPPDataResponse,
+  GetDPPHistoryRequest,
+  GetDPPHistoryResponse,
+  GetRecyclingInfoRequest,
+  GetRecyclingInfoResponse,
+  ListOwnedDPPsRequest,
+  ListOwnedDPPsResponse,
+  ReceiveDPPRequest,
+  RevokeDPPRequest,
+  SearchDPPByCriteriaRequest,
+  SearchDPPByCriteriaResponse,
+  SubmitProductReviewRequest,
+  SubscribeToUpdatesRequest,
+  UpdateRetailDataRequest,
+  UpdateTransportDataRequest,
+  VerifyDPPAuthenticityRequest,
+  VerifyDPPAuthenticityResponse,
+  DPPDataStatusEnum,
+} from "../generated/openapi/typescript-axios/api";
+
+export type {
+  AddCertificationRequest,
+  AggregateDPPRequest,
+  AggregateDPPResponse,
+  AmendDPPDataRequest,
+  CheckCrossChainStatusRequest,
+  CrossChainTransferDPPRequest,
+  DisaggregateDPPRequest,
+  DisaggregateDPPResponse,
+  GenericResponse,
+  GetDPPComponentsRequest,
+  GetDPPComponentsResponse,
+  GetDPPDataRequest,
+  GetDPPDataResponse,
+  GetDPPHistoryRequest,
+  GetDPPHistoryResponse,
+  GetRecyclingInfoRequest,
+  GetRecyclingInfoResponse,
+  ListOwnedDPPsRequest,
+  ListOwnedDPPsResponse,
+  ReceiveDPPRequest,
+  RevokeDPPRequest,
+  SearchDPPByCriteriaRequest,
+  SearchDPPByCriteriaResponse,
+  SubmitProductReviewRequest,
+  SubscribeToUpdatesRequest,
+  UpdateRetailDataRequest,
+  UpdateTransportDataRequest,
+  VerifyDPPAuthenticityRequest,
+  VerifyDPPAuthenticityResponse,
+};
+
+// Aggregate box/lot aliases for backward compatibility
+export type AggregateDPPtoBoxRequest = AggregateDPPRequest;
+export type AggregateDPPtoBoxResponse = AggregateDPPResponse;
+export type AggregateDPPtoLotRequest = { parentBoxList: string[] };
+export type AggregateDPPtoLotResponse = { newDPPLotId: string; txHash: string };
 
 export interface EVMDPPLeafOptions extends DPPOptions {
   contractAddress?: string;
@@ -67,6 +108,7 @@ export class EVMDPPLeaf extends DPPAbstract {
     "function markAsReceived(uint256 tokenId) public",
     "function updateRetailData(uint256 tokenId, string memory location, string memory arrivalDate, string memory shelfLife) public",
     "function aggregateDPPs(address to, string memory parentProductId, string memory metadataURI, uint256[] memory childTokenIds) public returns (uint256)",
+    "function disaggregateDPP(uint256 tokenId, address to, uint256 count) public returns (uint256[])",
     "function revokeDPP(uint256 tokenId, string memory reason) public",
     "function getDPPData(uint256 tokenId) public view returns (tuple(string productId, string productName, uint8 state, string creationDate, string additionalMetadataURI))",
     "function getTransportHistory(uint256 tokenId) public view returns (tuple(string locationFrom, string locationTo, string timestamp, string conditionData)[])",
@@ -146,25 +188,53 @@ export class EVMDPPLeaf extends DPPAbstract {
         logistics: pd.logistics || { storage_temp: "2°C - 4°C" },
         circular_economy: pd.circular_economy || {
           packaging: [
-            { material: "Cardboard Box", recyclability: "100% Recyclable", disposal: "Blue Bin (Paper/Cardboard)" },
-            { material: "PET Protective Film", recyclability: "100% Recyclable", disposal: "Yellow Bin (Plastic)" },
+            {
+              material: "Cardboard Box",
+              recyclability: "100% Recyclable",
+              disposal: "Blue Bin (Paper/Cardboard)",
+            },
+            {
+              material: "PET Protective Film",
+              recyclability: "100% Recyclable",
+              disposal: "Yellow Bin (Plastic)",
+            },
           ],
-          instructions: "Flatten the cardboard box to save space. Separate the plastic film before recycling.",
-          return_scheme: "Return intact wooden baskets to participating Cerfundão partners for a €0.50 discount on your next purchase.",
+          instructions:
+            "Flatten the cardboard box to save space. Separate the plastic film before recycling.",
+          return_scheme:
+            "Return intact wooden baskets to participating Cerfundão partners for a €0.50 discount on your next purchase.",
         },
       };
 
       // Build OpenSea-compatible attributes array from structured fields
       if (!pd.attributes) {
         const attrs: Array<Record<string, string | number>> = [];
-        if (metadataObj.variety) attrs.push({ trait_type: "Variedade", value: metadataObj.variety });
-        if (metadataObj.calibre) attrs.push({ trait_type: "Calibre", value: metadataObj.calibre });
-        if (metadataObj.manufacturer) attrs.push({ trait_type: "Produtor", value: metadataObj.manufacturer });
-        if (metadataObj.productionMethod) attrs.push({ trait_type: "Método de Produção", value: metadataObj.productionMethod });
+        if (metadataObj.variety)
+          attrs.push({ trait_type: "Variedade", value: metadataObj.variety });
+        if (metadataObj.calibre)
+          attrs.push({ trait_type: "Calibre", value: metadataObj.calibre });
+        if (metadataObj.manufacturer)
+          attrs.push({
+            trait_type: "Produtor",
+            value: metadataObj.manufacturer,
+          });
+        if (metadataObj.productionMethod)
+          attrs.push({
+            trait_type: "Método de Produção",
+            value: metadataObj.productionMethod,
+          });
         if (pd.createdAt) {
-          attrs.push({ display_type: "date", trait_type: "Data de Colheita", value: Math.floor(new Date(pd.createdAt).getTime() / 1000) });
+          attrs.push({
+            display_type: "date",
+            trait_type: "Data de Colheita",
+            value: Math.floor(new Date(pd.createdAt).getTime() / 1000),
+          });
         }
-        if (metadataObj.brixDegree) attrs.push({ trait_type: "Grau Brix", value: metadataObj.brixDegree });
+        if (metadataObj.brixDegree)
+          attrs.push({
+            trait_type: "Grau Brix",
+            value: metadataObj.brixDegree,
+          });
         metadataObj.attributes = attrs;
       }
 
@@ -342,7 +412,10 @@ export class EVMDPPLeaf extends DPPAbstract {
                 parsed.childDppId = childId.toString();
                 allHistory.push(parsed);
               } catch {
-                allHistory.push({ event: rawEntry, childDppId: childId.toString() });
+                allHistory.push({
+                  event: rawEntry,
+                  childDppId: childId.toString(),
+                });
               }
             }
           } catch {
@@ -351,6 +424,64 @@ export class EVMDPPLeaf extends DPPAbstract {
         }
       } catch {
         // No components — not an aggregated DPP, skip
+      }
+
+      // If this is a split child, inherit the origin's history first
+      try {
+        const dppData = await this.dppContract.getDPPData(request.dppId);
+        const metaURI: string = dppData.additionalMetadataURI || "";
+        if (metaURI.startsWith("split-from:")) {
+          const originId = metaURI.replace("split-from:", "");
+          try {
+            const originHistory = await this.dppContract.getHistory(originId);
+            for (const rawEntry of originHistory) {
+              try {
+                const parsed = JSON.parse(rawEntry);
+                parsed.inheritedFrom = originId;
+                allHistory.push(parsed);
+              } catch {
+                allHistory.push({ event: rawEntry, inheritedFrom: originId });
+              }
+            }
+            // Also inherit origin's transport and certification enrichment data
+            try {
+              const [originTransport, originCerts] = await Promise.all([
+                this.dppContract.getTransportHistory(originId),
+                this.dppContract.getCertifications(originId),
+              ]);
+              let tIdx = 0;
+              let cIdx = 0;
+              for (const entry of allHistory) {
+                if (!entry.inheritedFrom) continue;
+                if (
+                  entry.event === "Transport" &&
+                  tIdx < originTransport.length
+                ) {
+                  const t = originTransport[tIdx++];
+                  entry.locationFrom = t.locationFrom;
+                  entry.locationTo = t.locationTo;
+                  entry.conditionData = t.conditionData;
+                } else if (
+                  entry.event === "Certification" &&
+                  cIdx < originCerts.length
+                ) {
+                  const raw = originCerts[cIdx++];
+                  try {
+                    entry.certification = JSON.parse(raw);
+                  } catch {
+                    entry.certification = raw;
+                  }
+                }
+              }
+            } catch {
+              /* enrichment is best-effort */
+            }
+          } catch {
+            /* origin history not readable */
+          }
+        }
+      } catch {
+        /* getDPPData failed — skip inheritance */
       }
 
       // Add this DPP's own history
@@ -375,14 +506,24 @@ export class EVMDPPLeaf extends DPPAbstract {
 
         for (const entry of allHistory) {
           if (entry.childDppId) continue; // skip child events
-          if (entry.event === "Transport" && transportIdx < transportHistory.length) {
+          if (
+            entry.event === "Transport" &&
+            transportIdx < transportHistory.length
+          ) {
             const t = transportHistory[transportIdx++];
             entry.locationFrom = t.locationFrom;
             entry.locationTo = t.locationTo;
             entry.conditionData = t.conditionData;
-          } else if (entry.event === "Certification" && certIdx < certifications.length) {
+          } else if (
+            entry.event === "Certification" &&
+            certIdx < certifications.length
+          ) {
             const raw = certifications[certIdx++];
-            try { entry.certification = JSON.parse(raw); } catch { entry.certification = raw; }
+            try {
+              entry.certification = JSON.parse(raw);
+            } catch {
+              entry.certification = raw;
+            }
           }
         }
       } catch {
@@ -407,7 +548,9 @@ export class EVMDPPLeaf extends DPPAbstract {
     );
     try {
       const ownerAddress = await this.signer.getAddress();
-      const childIds: number[] = request.parentList.map((id: any) => Number(id));
+      const childIds: number[] = request.parentList.map((id: any) =>
+        Number(id),
+      );
 
       // 1. Fetch all children metadata and merge into parent
       const allVarieties: string[] = [];
@@ -419,29 +562,36 @@ export class EVMDPPLeaf extends DPPAbstract {
 
       for (const childId of childIds) {
         try {
-          const childData = await this.getDPPData({ dppId: childId });
-          const cd = childData.dppData;
-          const pub = cd.publicData || {};
+          const childData = await this.getDPPData({ dppId: String(childId) });
+          const cd = childData.dppData!;
+          const pub = (cd.publicData || {}) as Record<string, any>;
 
           childNames.push(cd.productName || `DPP #${childId}`);
-          if (pub.variety && !allVarieties.includes(pub.variety)) allVarieties.push(pub.variety);
-          if (pub.calibre && !allCalibres.includes(pub.calibre)) allCalibres.push(pub.calibre);
-          if (pub.origin && !allOrigins.includes(pub.origin)) allOrigins.push(pub.origin);
+          if (pub.variety && !allVarieties.includes(pub.variety))
+            allVarieties.push(pub.variety);
+          if (pub.calibre && !allCalibres.includes(pub.calibre))
+            allCalibres.push(pub.calibre);
+          if (pub.origin && !allOrigins.includes(pub.origin))
+            allOrigins.push(pub.origin);
           if (Array.isArray(pub.certifications)) {
             for (const cert of pub.certifications) {
-              if (!allCertifications.includes(cert)) allCertifications.push(cert);
+              if (!allCertifications.includes(cert))
+                allCertifications.push(cert);
             }
           }
           if (cd.creationDate && cd.creationDate > latestDate) {
             latestDate = cd.creationDate;
           }
         } catch (e: any) {
-          this.log.warn(`Could not fetch metadata for child ${childId}: ${e.message}`);
+          this.log.warn(
+            `Could not fetch metadata for child ${childId}: ${e.message}`,
+          );
         }
       }
 
       // 2. Build merged metadata JSON for the parent
-      const lotName = request.lotName || `Aggregated Lot (${childIds.length} items)`;
+      const lotName =
+        request.lotName || `Aggregated Lot (${childIds.length} items)`;
 
       const mergedMetadata: Record<string, any> = {
         name: lotName,
@@ -457,16 +607,32 @@ export class EVMDPPLeaf extends DPPAbstract {
         logistics: { storage_temp: "2°C - 4°C" },
         circular_economy: {
           packaging: [
-            { material: "Cardboard Box", recyclability: "100% Recyclable", disposal: "Blue Bin (Paper/Cardboard)" },
-            { material: "PET Protective Film", recyclability: "100% Recyclable", disposal: "Yellow Bin (Plastic)" },
+            {
+              material: "Cardboard Box",
+              recyclability: "100% Recyclable",
+              disposal: "Blue Bin (Paper/Cardboard)",
+            },
+            {
+              material: "PET Protective Film",
+              recyclability: "100% Recyclable",
+              disposal: "Yellow Bin (Plastic)",
+            },
           ],
-          instructions: "Flatten the cardboard box to save space. Separate the plastic film before recycling.",
-          return_scheme: "Return intact wooden baskets to participating Cerfundão partners for a €0.50 discount on your next purchase.",
+          instructions:
+            "Flatten the cardboard box to save space. Separate the plastic film before recycling.",
+          return_scheme:
+            "Return intact wooden baskets to participating Cerfundão partners for a €0.50 discount on your next purchase.",
         },
         attributes: [
-          ...(allVarieties.length ? [{ trait_type: "Variedade", value: allVarieties.join(", ") }] : []),
-          ...(allCalibres.length ? [{ trait_type: "Calibre", value: allCalibres.join(", ") }] : []),
-          ...(request.handler ? [{ trait_type: "Processado por", value: request.handler }] : []),
+          ...(allVarieties.length
+            ? [{ trait_type: "Variedade", value: allVarieties.join(", ") }]
+            : []),
+          ...(allCalibres.length
+            ? [{ trait_type: "Calibre", value: allCalibres.join(", ") }]
+            : []),
+          ...(request.handler
+            ? [{ trait_type: "Processado por", value: request.handler }]
+            : []),
           { trait_type: "Tipo", value: "Lote Agregado" },
           { trait_type: "Quantidade", value: `${childIds.length} DPPs` },
         ],
@@ -492,7 +658,9 @@ export class EVMDPPLeaf extends DPPAbstract {
       await tx.wait();
 
       const newId = tokenIdResponse.toString();
-      this.log.info(`Aggregated ${childIds.length} DPPs into new parent DPP ${newId}`);
+      this.log.info(
+        `Aggregated ${childIds.length} DPPs into new parent DPP ${newId}`,
+      );
 
       return { newDPPBoxId: newId, txHash: tx.hash };
     } catch (error: any) {
@@ -513,6 +681,44 @@ export class EVMDPPLeaf extends DPPAbstract {
       newDPPLotId: `lot-dpp-${Date.now()}`,
       txHash: "0xmockhash",
     };
+  }
+
+  public async disaggregateDPP(
+    request: DisaggregateDPPRequest,
+  ): Promise<DisaggregateDPPResponse> {
+    const tokenId = Number(request.dppId);
+    const count = Number(request.count);
+    this.log.debug(
+      `disaggregateDPP called for token ${tokenId}, count ${count}`,
+    );
+    try {
+      const ownerAddress = await this.signer.getAddress();
+
+      // 1. Get return value (new token IDs) via callStatic
+      const newIds = await this.dppContract.callStatic.disaggregateDPP(
+        tokenId,
+        ownerAddress,
+        count,
+      );
+
+      // 2. Execute the actual transaction
+      const tx = await this.dppContract.disaggregateDPP(
+        tokenId,
+        ownerAddress,
+        count,
+      );
+      await tx.wait();
+
+      const newTokenIds = newIds.map((id: any) => id.toString());
+      this.log.info(
+        `Disaggregated DPP ${tokenId} into ${count} new DPPs: ${newTokenIds.join(", ")}`,
+      );
+
+      return { newTokenIds, txHash: tx.hash };
+    } catch (error: any) {
+      this.log.error(`disaggregateDPP exception: ${error.message}`);
+      throw new Error(`Failed to disaggregate DPP on EVM: ${error.message}`);
+    }
   }
 
   public async getDPPComponents(
@@ -571,10 +777,15 @@ export class EVMDPPLeaf extends DPPAbstract {
       try {
         const dppData = await this.dppContract.getDPPData(request.dppId);
         let publicData: any = {};
-        try { publicData = JSON.parse(dppData.additionalMetadataURI); } catch { /* empty */ }
+        try {
+          publicData = JSON.parse(dppData.additionalMetadataURI);
+        } catch {
+          /* empty */
+        }
 
         if (!publicData.logistics) publicData.logistics = {};
-        if (!Array.isArray(publicData.logistics.shipments)) publicData.logistics.shipments = [];
+        if (!Array.isArray(publicData.logistics.shipments))
+          publicData.logistics.shipments = [];
 
         publicData.logistics.shipments.push({
           from: locationFrom,
@@ -590,7 +801,9 @@ export class EVMDPPLeaf extends DPPAbstract {
         );
         await amendTx.wait();
       } catch (amendErr: any) {
-        this.log.warn(`Shipping metadata amend failed (non-fatal): ${amendErr.message}`);
+        this.log.warn(
+          `Shipping metadata amend failed (non-fatal): ${amendErr.message}`,
+        );
       }
 
       return this.createSuccessResponse(
@@ -625,13 +838,20 @@ export class EVMDPPLeaf extends DPPAbstract {
       try {
         const dppData = await this.dppContract.getDPPData(request.dppId);
         let publicData: any = {};
-        try { publicData = JSON.parse(dppData.additionalMetadataURI); } catch {}
+        try {
+          publicData = JSON.parse(dppData.additionalMetadataURI);
+        } catch {}
         if (shelfLife) publicData.shelfLife = shelfLife;
         if (price) publicData.price = price;
-        const amendTx = await this.dppContract.amendDPPData(request.dppId, JSON.stringify(publicData));
+        const amendTx = await this.dppContract.amendDPPData(
+          request.dppId,
+          JSON.stringify(publicData),
+        );
         await amendTx.wait();
       } catch (amendErr: any) {
-        this.log.warn(`Retail metadata amend failed (non-fatal): ${amendErr.message}`);
+        this.log.warn(
+          `Retail metadata amend failed (non-fatal): ${amendErr.message}`,
+        );
       }
 
       return this.createSuccessResponse(
@@ -671,7 +891,11 @@ export class EVMDPPLeaf extends DPPAbstract {
 
       // Parse stored certification strings (may be JSON or plain text)
       let parsedCerts = (certifications || []).map((c: string) => {
-        try { return JSON.parse(c); } catch { return c; }
+        try {
+          return JSON.parse(c);
+        } catch {
+          return c;
+        }
       });
 
       // For aggregated DPPs, also inherit children's certifications
@@ -679,29 +903,77 @@ export class EVMDPPLeaf extends DPPAbstract {
         const childIds = await this.dppContract.getDPPComponents(request.dppId);
         for (const childId of childIds) {
           try {
-            const childCerts = await this.dppContract.getCertifications(childId);
+            const childCerts =
+              await this.dppContract.getCertifications(childId);
             for (const c of childCerts) {
-              const parsed = (() => { try { return JSON.parse(c); } catch { return c; } })();
+              const parsed = (() => {
+                try {
+                  return JSON.parse(c);
+                } catch {
+                  return c;
+                }
+              })();
               const asStr = JSON.stringify(parsed);
-              if (!parsedCerts.some((existing: any) => JSON.stringify(existing) === asStr)) {
+              if (
+                !parsedCerts.some(
+                  (existing: any) => JSON.stringify(existing) === asStr,
+                )
+              ) {
                 parsedCerts.push(parsed);
               }
             }
-          } catch { /* skip */ }
+          } catch {
+            /* skip */
+          }
         }
-      } catch { /* no children */ }
+      } catch {
+        /* no children */
+      }
+
+      // Resolve metadata: if this is a split child, fetch the origin's metadata
+      // and certifications (since we store only a lightweight reference on-chain).
+      let publicData: any = {};
+      const metaURI: string = data.additionalMetadataURI || "";
+      if (metaURI.startsWith("split-from:")) {
+        const originId = metaURI.replace("split-from:", "");
+        try {
+          const [originData, originCerts] = await Promise.all([
+            this.dppContract.getDPPData(originId),
+            this.dppContract.getCertifications(originId),
+          ]);
+          publicData = originData.additionalMetadataURI
+            ? JSON.parse(originData.additionalMetadataURI)
+            : {};
+          // Inherit certifications from origin if child has none
+          if (parsedCerts.length === 0 && originCerts.length > 0) {
+            parsedCerts = originCerts.map((c: string) => {
+              try {
+                return JSON.parse(c);
+              } catch {
+                return c;
+              }
+            });
+          }
+        } catch {
+          publicData = { _splitFrom: originId };
+        }
+      } else if (metaURI) {
+        try {
+          publicData = JSON.parse(metaURI);
+        } catch {
+          publicData = {};
+        }
+      }
 
       return {
         dppData: {
           dppId: request.dppId.toString(),
           productId: data.productId,
           productName: data.productName,
-          status: statusString,
+          status: statusString as DPPDataStatusEnum,
           creationDate: data.creationDate,
           owner,
-          publicData: data.additionalMetadataURI
-            ? JSON.parse(data.additionalMetadataURI)
-            : {},
+          publicData,
           certifications: parsedCerts,
         },
       };
@@ -714,8 +986,8 @@ export class EVMDPPLeaf extends DPPAbstract {
           dppId: request.dppId,
           productId: "prod-1",
           productName: "Mock Product",
-          currentOwner: "0xconsumer",
-          status: "ACTIVE",
+          owner: "0xconsumer",
+          status: "ACTIVE" as DPPDataStatusEnum,
           creationDate: new Date().toISOString(),
           publicData: { info: "This is a mock public data field." },
         },
@@ -737,7 +1009,9 @@ export class EVMDPPLeaf extends DPPAbstract {
     const mintEvents = await this.dppContract.queryFilter(mintFilter);
 
     // Deduplicate token IDs (a token can only be minted once, but queryFilter may return dupes)
-    const tokenIds = [...new Set(mintEvents.map((e) => e.args?.tokenId.toString() as string))];
+    const tokenIds = [
+      ...new Set(mintEvents.map((e) => e.args?.tokenId.toString() as string)),
+    ];
     this.log.debug(`Found ${tokenIds.length} minted token IDs via events`);
 
     const allDPPs: any[] = [];
@@ -748,13 +1022,15 @@ export class EVMDPPLeaf extends DPPAbstract {
         const owner = await this.dppContract.ownerOf(tokenId);
         const dataResponse = await this.getDPPData({ dppId: tokenId });
 
+        const dd = dataResponse.dppData!;
+        const pub = (dd.publicData || {}) as Record<string, any>;
         allDPPs.push({
           id: tokenId,
           tokenId,
-          name: dataResponse.dppData.publicData?.productName || dataResponse.dppData.productName || dataResponse.dppData.productId,
-          createdAt: dataResponse.dppData.creationDate,
-          status: dataResponse.dppData.status.toLowerCase().replace("_", "-"),
-          ipfsUri: JSON.stringify(dataResponse.dppData.publicData),
+          name: pub.productName || dd.productName || dd.productId,
+          createdAt: dd.creationDate,
+          status: (dd.status || "UNKNOWN").toLowerCase().replace("_", "-"),
+          ipfsUri: JSON.stringify(dd.publicData),
           ownerAddress: owner,
         });
       } catch {
@@ -808,8 +1084,13 @@ export class EVMDPPLeaf extends DPPAbstract {
       // bridgeAddress can be passed in the request for SATP gateway scenarios.
       // Falls back to the contract itself, which implements onERC721Received, making
       // it a valid ERC721 receiver suitable for local/single-chain testing.
-      const bridgeAddress = (request as any).bridgeAddress ?? this.contractAddress;
-      const tx = await this.dppContract.lock(ownerAddress, bridgeAddress, request.dppId);
+      const bridgeAddress =
+        (request as any).bridgeAddress ?? this.contractAddress;
+      const tx = await this.dppContract.lock(
+        ownerAddress,
+        bridgeAddress,
+        request.dppId,
+      );
       await tx.wait();
 
       return this.createSuccessResponse(

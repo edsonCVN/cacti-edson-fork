@@ -25,8 +25,8 @@ import { GetDppByIdEndpoint } from "./web-services/get-dpp-by-id-endpoint";
 import { GetDppHistoryEndpoint } from "./web-services/get-dpp-history-endpoint";
 import { AddFeedbackEndpoint } from "./web-services/add-feedback-endpoint";
 import {
-  TransportDataRequest,
-  TransferRequest,
+  UpdateTransportDataRequest,
+  TransferDPPRequest,
 } from "./generated/openapi/typescript-axios";
 
 export interface IPluginDppOptions extends ICactusPluginOptions {
@@ -101,13 +101,13 @@ export class PluginDpp implements ICactusPlugin, IPluginWebService {
     return endpoints;
   }
 
-  public async updateTransport(req: TransportDataRequest): Promise<void> {
+  public async updateTransport(req: UpdateTransportDataRequest): Promise<void> {
     const fnTag = `${this.className}#updateTransport()`;
     this.log.debug(`${fnTag}`, req);
     // TODO: Implement business logic here
   }
 
-  public async transfer(req: TransferRequest): Promise<void> {
+  public async transfer(req: TransferDPPRequest): Promise<void> {
     const fnTag = `${this.className}#transfer()`;
     this.log.debug(`${fnTag}`, req);
     // TODO: Implement business logic here
@@ -117,3 +117,6 @@ export class PluginDpp implements ICactusPlugin, IPluginWebService {
     return `@hyperledger/cactus-plugin-dpp`;
   }
 }
+
+// Alias for endpoints that import PluginDPP (uppercase)
+export { PluginDpp as PluginDPP };

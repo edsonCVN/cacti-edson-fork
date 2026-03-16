@@ -13,7 +13,7 @@ import {
 } from "@hyperledger/cactus-common";
 import { registerWebServiceEndpoint } from "@hyperledger/cactus-core";
 import { PluginDpp } from "../plugin-dpp";
-import { TransferRequest } from "../generated/openapi/typescript-axios";
+import { TransferDPPRequest } from "../generated/openapi/typescript-axios";
 
 export interface ITransferDppEndpointOptions {
   logLevel?: LogLevelDesc;
@@ -72,7 +72,7 @@ export class TransferDppEndpoint implements IWebServiceEndpoint {
     this.log.debug(`${fnTag}`);
 
     try {
-      const requestBody = req.body as TransferRequest;
+      const requestBody = req.body as TransferDPPRequest;
       await this.options.connector.transfer(requestBody);
       res.status(200).json({ description: "Ownership Transferred" });
     } catch (ex) {

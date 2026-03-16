@@ -2,14 +2,31 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Hyperledger Cacti Plugin - Digital Product Passport (DPP)",
-    "description": "API for Digital Product Passport interoperability - Fundão Cherry Case Study. Implements full lifecycle from production to consumer feedback.",
-    "version": "1.0.0",
+    "description": "API for Digital Product Passport interoperability - Fundão Cherry Case Study. Implements full lifecycle from production to consumer feedback, including disaggregation, cross-chain transfers via SATP, and role-based supply-chain operations.",
+    "version": "2.0.0",
     "license": {
       "name": "Apache-2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     }
   },
   "paths": {
+    "/api/v1/@hyperledger/cactus-plugin-dpp/config": {
+      "get": {
+        "summary": "Get contract and network configuration",
+        "operationId": "getConfig",
+        "tags": ["Public"],
+        "responses": {
+          "200": {
+            "description": "Current configuration",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ConfigResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/@hyperledger/cactus-plugin-dpp/create": {
       "post": {
         "summary": "Farmer: Create initial DPP NFT",
@@ -24,76 +41,74 @@
           }
         },
         "responses": {
-          "200": { "description": "DPP Created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TransactionResponse" } } } }
-        }
-      }
-    },
-    "/api/v1/@hyperledger/cactus-plugin-dpp/transfer": {
-      "post": {
-        "summary": "Transfer ownership to another actor (e.g., Processor, Transporter)",
-        "operationId": "transferDPP",
-        "tags": ["Ownership"],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/TransferRequest" }
+          "200": {
+            "description": "DPP Created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CreateDPPResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Creation failed",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
             }
           }
-        },
-        "responses": {
-          "200": { "description": "Ownership Transferred" }
         }
       }
     },
-    "/api/v1/@hyperledger/cactus-plugin-dpp/aggregate": {
-      "post": {
-        "summary": "Processor: Aggregate multiple production DPPs into a Box/Pallet",
-        "operationId": "aggregateDPP",
-        "tags": ["Processor"],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/AggregateRequest" }
-            }
-          }
-        },
-        "responses": {
-          "200": { "description": "Aggregation Successful" }
-        }
-      }
-    },
-    "/api/v1/@hyperledger/cactus-plugin-dpp/update-transport": {
-      "patch": {
-        "summary": "Transporter: Update shipping details (Temp, Humidity, Route)",
-        "operationId": "updateTransportData",
-        "tags": ["Logistics"],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/TransportDataRequest" }
-            }
-          }
-        },
-        "responses": {
-          "200": { "description": "Transport Data Logged" }
-        }
-      }
-    },
-    "/api/v1/@hyperledger/cactus-plugin-dpp/scan/{dppId}": {
+    "/api/v1/@hyperledger/cactus-plugin-dpp/data": {
       "get": {
-        "summary": "Consumer/Audit: Read DPP data via QR Code ID",
-        "operationId": "getDPPById",
+        "summary": "Get DPP on-chain data by ID",
+        "operationId": "getDPPData",
         "tags": ["Public"],
         "parameters": [
-          { "name": "dppId", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "dppId",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" }
+          }
         ],
         "responses": {
           "200": {
-            "description": "Full DPP Metadata",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DPPDetails" } } }
+            "description": "DPP data",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GetDPPDataResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Fetch failed",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/@hyperledger/cactus-plugin-dpp/passports": {
+      "get": {
+        "summary": "List all minted passports",
+        "operationId": "getAllPassports",
+        "tags": ["Public"],
+        "responses": {
+          "200": {
+            "description": "Array of passport summaries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/PassportSummary" }
+                }
+              }
+            }
           }
         }
       }
@@ -104,110 +119,659 @@
         "operationId": "getDPPHistory",
         "tags": ["Audit"],
         "parameters": [
-          { "name": "dppId", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "dppId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
         ],
         "responses": {
           "200": {
-            "description": "Historical Trail",
-            "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/HistoryRecord" } } } }
+            "description": "Historical trail",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GetDPPHistoryResponse" }
+              }
+            }
           }
         }
       }
     },
-    "/api/v1/@hyperledger/cactus-plugin-dpp/feedback": {
+    "/api/v1/@hyperledger/cactus-plugin-dpp/transfer": {
       "post": {
-        "summary": "Consumer: Add rating and feedback to the DPP",
-        "operationId": "addFeedback",
+        "summary": "Transfer ownership to another actor",
+        "operationId": "transferDPP",
+        "tags": ["Ownership"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TransferDPPRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ownership transferred",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GenericResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/@hyperledger/cactus-plugin-dpp/amend": {
+      "post": {
+        "summary": "Amend DPP metadata URI",
+        "operationId": "amendDPPData",
+        "tags": ["Processor"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AmendDPPDataRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Metadata amended",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GenericResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/@hyperledger/cactus-plugin-dpp/add-certification": {
+      "post": {
+        "summary": "Attach a certification to a DPP",
+        "operationId": "addCertification",
+        "tags": ["Processor"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AddCertificationRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Certification added",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GenericResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/@hyperledger/cactus-plugin-dpp/update-transport-data": {
+      "post": {
+        "summary": "Transporter: Record transport leg data",
+        "operationId": "updateTransportData",
+        "tags": ["Logistics"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateTransportDataRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transport data logged",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GenericResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/@hyperledger/cactus-plugin-dpp/mark-as-received": {
+      "post": {
+        "summary": "Retailer: Mark DPP as received",
+        "operationId": "markAsReceived",
+        "tags": ["Retailer"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ReceiveDPPRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "DPP marked as received",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GenericResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/@hyperledger/cactus-plugin-dpp/update-retail-data": {
+      "post": {
+        "summary": "Retailer: Update retail-specific data",
+        "operationId": "updateRetailData",
+        "tags": ["Retailer"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateRetailDataRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Retail data updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GenericResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/@hyperledger/cactus-plugin-dpp/submit-product-review": {
+      "post": {
+        "summary": "Consumer: Submit product review/feedback",
+        "operationId": "submitProductReview",
         "tags": ["Consumer"],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/FeedbackRequest" }
+              "schema": { "$ref": "#/components/schemas/SubmitProductReviewRequest" }
             }
           }
         },
         "responses": {
-          "200": { "description": "Feedback Recorded" }
+          "200": {
+            "description": "Review submitted",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GenericResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/@hyperledger/cactus-plugin-dpp/aggregate": {
+      "post": {
+        "summary": "Processor: Aggregate multiple DPPs into a parent lot",
+        "operationId": "aggregateDPP",
+        "tags": ["Processor"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AggregateDPPRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Aggregation successful",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AggregateDPPResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/@hyperledger/cactus-plugin-dpp/disaggregate": {
+      "post": {
+        "summary": "Split a DPP into multiple independent child DPPs",
+        "operationId": "disaggregateDPP",
+        "tags": ["Processor"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DisaggregateDPPRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Disaggregation successful",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DisaggregateDPPResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/@hyperledger/cactus-plugin-dpp/cross-chain-transfer": {
+      "post": {
+        "summary": "Initiate SATP cross-chain transfer",
+        "operationId": "crossChainTransferDPP",
+        "tags": ["CrossChain"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CrossChainTransferDPPRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transfer initiated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CrossChainTransferDPPResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/@hyperledger/cactus-plugin-dpp/cross-chain-status": {
+      "get": {
+        "summary": "Poll SATP cross-chain transfer status",
+        "operationId": "getCrossChainStatus",
+        "tags": ["CrossChain"],
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Session status",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CrossChainStatusResponse" }
+              }
+            }
+          }
         }
       }
     }
   },
   "components": {
     "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["error"],
+        "properties": {
+          "error": { "type": "string", "description": "Error message" }
+        }
+      },
+      "GenericResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "message": { "type": "string" },
+          "txHash": { "type": "string" }
+        }
+      },
+      "ConfigResponse": {
+        "type": "object",
+        "properties": {
+          "contractAddress": { "type": "string" },
+          "network": { "type": "string" },
+          "satpGateway": { "type": "string" }
+        }
+      },
       "CreateDPPRequest": {
         "type": "object",
+        "required": ["owner"],
         "properties": {
-          "farmerId": { "type": "string" },
-          "batchId": { "type": "string" },
-          "productionData": {
-            "type": "object",
-            "properties": {
-              "pesticidesUsed": { "type": "string" },
-              "certifications": { "type": "array", "items": { "type": "string" } },
-              "harvestDate": { "type": "string", "format": "date-time" },
-              "location": { "type": "string" }
-            }
-          }
+          "owner": { "type": "string", "description": "Ethereum address of the DPP owner" },
+          "productionData": { "$ref": "#/components/schemas/ProductionData" }
         }
       },
-      "TransferRequest": {
+      "ProductionData": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "image": { "type": "string" },
+          "origin": { "type": "string" },
+          "productionMethod": { "type": "string" },
+          "variety": { "type": "string" },
+          "calibre": { "type": "string" },
+          "brixDegree": { "type": "string" },
+          "certifications": { "type": "array", "items": { "type": "string" } },
+          "manufacturer": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "ipfsUri": { "type": "string" }
+        }
+      },
+      "CreateDPPResponse": {
         "type": "object",
         "properties": {
           "dppId": { "type": "string" },
-          "newOwnerAddress": { "type": "string" },
-          "actorRole": { "type": "string", "enum": ["PROCESSOR", "TRANSPORTER", "RETAILER"] }
+          "tokenId": { "type": "string" },
+          "txHash": { "type": "string" },
+          "owner": { "type": "string" }
         }
       },
-      "AggregateRequest": {
+      "GetDPPDataResponse": {
         "type": "object",
         "properties": {
-          "parentDppIds": { "type": "array", "items": { "type": "string" } },
-          "newBatchId": { "type": "string" },
-          "processingDetails": { "type": "string" }
+          "dppData": { "$ref": "#/components/schemas/DPPData" }
         }
       },
-      "TransportDataRequest": {
-        "type": "object",
-        "properties": {
-          "dppId": { "type": "string" },
-          "temperature": { "type": "number" },
-          "humidity": { "type": "number" },
-          "location": { "type": "string" }
-        }
-      },
-      "FeedbackRequest": {
+      "DPPData": {
         "type": "object",
         "properties": {
           "dppId": { "type": "string" },
-          "rating": { "type": "integer", "minimum": 1, "maximum": 5 },
-          "comment": { "type": "string" }
+          "productId": { "type": "string" },
+          "productName": { "type": "string" },
+          "status": { "type": "string", "enum": ["ACTIVE", "IN_TRANSIT", "RECEIVED", "RETAIL_READY", "BURNED", "LOCKED_CROSSCHAIN", "REVOKED", "UNKNOWN"] },
+          "creationDate": { "type": "string" },
+          "owner": { "type": "string" },
+          "publicData": { "type": "object", "description": "Parsed JSON metadata" },
+          "certifications": { "type": "array", "items": {} }
         }
       },
-      "DPPDetails": {
+      "PassportSummary": {
         "type": "object",
         "properties": {
-          "dppId": { "type": "string" },
-          "currentOwner": { "type": "string" },
+          "id": { "type": "string" },
+          "tokenId": { "type": "string" },
+          "name": { "type": "string" },
+          "createdAt": { "type": "string" },
           "status": { "type": "string" },
-          "metadata": { "type": "object" }
+          "ipfsUri": { "type": "string" },
+          "ownerAddress": { "type": "string" }
+        }
+      },
+      "GetDPPHistoryResponse": {
+        "type": "object",
+        "properties": {
+          "history": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/HistoryRecord" }
+          }
         }
       },
       "HistoryRecord": {
         "type": "object",
         "properties": {
-          "timestamp": { "type": "string", "format": "date-time" },
+          "event": { "type": "string" },
           "actor": { "type": "string" },
-          "action": { "type": "string" },
+          "timestamp": { "type": "integer", "description": "Unix timestamp" },
+          "locationFrom": { "type": "string" },
+          "locationTo": { "type": "string" },
+          "conditionData": { "type": "string" },
+          "certification": { "type": "object" },
+          "childDppId": { "type": "string" },
+          "inheritedFrom": { "type": "string" }
+        }
+      },
+      "TransferDPPRequest": {
+        "type": "object",
+        "required": ["dppId", "from", "to"],
+        "properties": {
+          "dppId": { "type": "string" },
+          "from": { "type": "string", "description": "Current owner address" },
+          "to": { "type": "string", "description": "New owner address" }
+        }
+      },
+      "AmendDPPDataRequest": {
+        "type": "object",
+        "required": ["dppId"],
+        "properties": {
+          "dppId": { "type": "string" },
+          "handlerAddress": { "type": "string" },
+          "newData": { "type": "object", "description": "Key-value pairs to amend in the DPP metadata" }
+        }
+      },
+      "AddCertificationRequest": {
+        "type": "object",
+        "required": ["dppId", "certificationData"],
+        "properties": {
+          "dppId": { "type": "string" },
+          "handlerAddress": { "type": "string" },
+          "certificationData": { "type": "object", "description": "Certification object (certId, issuedBy, date, etc.)" }
+        }
+      },
+      "UpdateTransportDataRequest": {
+        "type": "object",
+        "required": ["dppId"],
+        "properties": {
+          "dppId": { "type": "string" },
+          "transportData": {
+            "type": "object",
+            "description": "Transport leg details",
+            "properties": {
+              "locationFrom": { "type": "string" },
+              "locationTo": { "type": "string" },
+              "timestamp": { "type": "string" },
+              "conditionData": { "type": "string" },
+              "handler": { "type": "string" },
+              "handlerAddress": { "type": "string" }
+            }
+          }
+        }
+      },
+      "ReceiveDPPRequest": {
+        "type": "object",
+        "required": ["dppId"],
+        "properties": {
+          "dppId": { "type": "string" },
+          "handlerAddress": { "type": "string" }
+        }
+      },
+      "UpdateRetailDataRequest": {
+        "type": "object",
+        "required": ["dppId"],
+        "properties": {
+          "dppId": { "type": "string" },
+          "handlerAddress": { "type": "string" },
+          "handler": { "type": "string" },
+          "location": { "type": "string" },
+          "arrivalDate": { "type": "string" },
+          "shelfLife": { "type": "string" },
+          "price": { "type": "string" },
+          "retailData": {
+            "type": "object",
+            "description": "Alternative nested retail data object",
+            "properties": {
+              "location": { "type": "string" },
+              "arrivalDate": { "type": "string" },
+              "shelfLife": { "type": "string" },
+              "price": { "type": "string" }
+            }
+          }
+        }
+      },
+      "SubmitProductReviewRequest": {
+        "type": "object",
+        "required": ["dppId"],
+        "properties": {
+          "dppId": { "type": "string" },
+          "handlerAddress": { "type": "string" },
+          "rating": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "comment": { "type": "string" }
+        }
+      },
+      "AggregateDPPRequest": {
+        "type": "object",
+        "required": ["parentList", "handlerAddress"],
+        "properties": {
+          "parentList": { "type": "array", "items": { "type": "string" }, "description": "Token IDs of individual DPPs to aggregate" },
+          "handlerAddress": { "type": "string" },
+          "handler": { "type": "string", "description": "Human-readable handler name" },
+          "lotName": { "type": "string" }
+        }
+      },
+      "AggregateDPPResponse": {
+        "type": "object",
+        "properties": {
+          "newDPPBoxId": { "type": "string", "description": "Token ID of the new aggregated DPP" },
           "txHash": { "type": "string" }
         }
       },
-      "TransactionResponse": {
+      "DisaggregateDPPRequest": {
+        "type": "object",
+        "required": ["dppId", "count", "handlerAddress"],
+        "properties": {
+          "dppId": { "type": "string", "description": "Token ID of the DPP to split" },
+          "count": { "type": "integer", "minimum": 2, "maximum": 20, "description": "Number of new DPPs to create" },
+          "handler": { "type": "string", "description": "Human-readable handler name" },
+          "handlerAddress": { "type": "string", "description": "Ethereum address of the handler" }
+        }
+      },
+      "DisaggregateDPPResponse": {
         "type": "object",
         "properties": {
-          "transactionHash": { "type": "string" },
+          "newTokenIds": { "type": "array", "items": { "type": "string" }, "description": "Token IDs of the newly created DPPs" },
+          "txHash": { "type": "string" }
+        }
+      },
+      "CrossChainTransferDPPRequest": {
+        "type": "object",
+        "required": ["dppId"],
+        "properties": {
+          "dppId": { "type": "string", "description": "Token ID to transfer cross-chain" },
+          "receiverAddress": { "type": "string" },
+          "sourceOwner": { "type": "string" },
+          "destinationNetwork": { "type": "string", "description": "Target chain identifier" },
+          "bridgeAddress": { "type": "string", "description": "Address of the SATP bridge contract" }
+        }
+      },
+      "CrossChainTransferDPPResponse": {
+        "type": "object",
+        "properties": {
+          "sessionId": { "type": "string" },
+          "raw": { "type": "object" }
+        }
+      },
+      "CrossChainStatusResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string" },
+          "phase": { "type": "string" }
+        }
+      },
+      "RevokeDPPRequest": {
+        "type": "object",
+        "required": ["dppId", "reason"],
+        "properties": {
           "dppId": { "type": "string" },
-          "status": { "type": "string" }
+          "reason": { "type": "string" }
+        }
+      },
+      "GetDPPDataRequest": {
+        "type": "object",
+        "required": ["dppId"],
+        "properties": {
+          "dppId": { "type": "string" }
+        }
+      },
+      "GetDPPHistoryRequest": {
+        "type": "object",
+        "required": ["dppId"],
+        "properties": {
+          "dppId": { "type": "string" }
+        }
+      },
+      "ListOwnedDPPsRequest": {
+        "type": "object",
+        "required": ["ownerAddress"],
+        "properties": {
+          "ownerAddress": { "type": "string" }
+        }
+      },
+      "ListOwnedDPPsResponse": {
+        "type": "object",
+        "properties": {
+          "dppIds": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "GetDPPComponentsRequest": {
+        "type": "object",
+        "required": ["aggregatedDppId"],
+        "properties": {
+          "aggregatedDppId": { "type": "string" }
+        }
+      },
+      "GetDPPComponentsResponse": {
+        "type": "object",
+        "properties": {
+          "componentDppIds": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "CheckCrossChainStatusRequest": {
+        "type": "object",
+        "required": ["transferId"],
+        "properties": {
+          "transferId": { "type": "string" }
+        }
+      },
+      "VerifyDPPAuthenticityRequest": {
+        "type": "object",
+        "required": ["dppId"],
+        "properties": {
+          "dppId": { "type": "string" }
+        }
+      },
+      "VerifyDPPAuthenticityResponse": {
+        "type": "object",
+        "properties": {
+          "isValid": { "type": "boolean" },
+          "provenance": { "type": "object" }
+        }
+      },
+      "GetRecyclingInfoRequest": {
+        "type": "object",
+        "required": ["dppId"],
+        "properties": {
+          "dppId": { "type": "string" }
+        }
+      },
+      "GetRecyclingInfoResponse": {
+        "type": "object",
+        "properties": {
+          "recyclingInfo": { "type": "object" }
+        }
+      },
+      "SubscribeToUpdatesRequest": {
+        "type": "object",
+        "required": ["dppId"],
+        "properties": {
+          "dppId": { "type": "string" }
+        }
+      },
+      "SearchDPPByCriteriaRequest": {
+        "type": "object",
+        "properties": {
+          "criteria": { "type": "object" }
+        }
+      },
+      "SearchDPPByCriteriaResponse": {
+        "type": "object",
+        "properties": {
+          "dppIds": { "type": "array", "items": { "type": "string" } }
         }
       }
     }

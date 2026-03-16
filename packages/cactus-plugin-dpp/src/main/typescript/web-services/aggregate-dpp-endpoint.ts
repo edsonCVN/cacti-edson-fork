@@ -13,7 +13,7 @@ import {
 } from "@hyperledger/cactus-common";
 import { registerWebServiceEndpoint } from "@hyperledger/cactus-core";
 import { PluginDpp } from "../plugin-dpp";
-import { AggregateRequest } from "../generated/openapi/typescript-axios";
+import { AggregateDPPRequest } from "../generated/openapi/typescript-axios";
 
 export interface IAggregateDppEndpointOptions {
   logLevel?: LogLevelDesc;
@@ -72,7 +72,7 @@ export class AggregateDppEndpoint implements IWebServiceEndpoint {
     this.log.debug(`${fnTag}`);
 
     try {
-      const requestBody = req.body as AggregateRequest;
+      const requestBody = req.body as AggregateDPPRequest;
       this.log.debug(`${fnTag} requestBody:`, requestBody);
       res.status(200).json({ description: "Aggregation Successful" });
     } catch (ex) {

@@ -13,7 +13,7 @@ import {
 } from "@hyperledger/cactus-common";
 import { registerWebServiceEndpoint } from "@hyperledger/cactus-core";
 import { PluginDpp } from "../plugin-dpp";
-import { FeedbackRequest } from "../generated/openapi/typescript-axios";
+import { SubmitProductReviewRequest } from "../generated/openapi/typescript-axios";
 
 export interface IAddFeedbackEndpointOptions {
   logLevel?: LogLevelDesc;
@@ -72,7 +72,7 @@ export class AddFeedbackEndpoint implements IWebServiceEndpoint {
     this.log.debug(`${fnTag}`);
 
     try {
-      const requestBody = req.body as FeedbackRequest;
+      const requestBody = req.body as SubmitProductReviewRequest;
       this.log.debug(`${fnTag} requestBody:`, requestBody);
       res.status(200).json({ description: "Feedback Recorded" });
     } catch (ex) {

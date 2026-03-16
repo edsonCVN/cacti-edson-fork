@@ -164,15 +164,27 @@ async function main() {
   }
 
   // ── Resolve contract address ──────────────────────────────────────────────
-  let contractAddress: string;
+  let contractAddress = "";
+  let needsDeploy = true;
 
   if (fs.existsSync(ADDRESSES_FILE)) {
     // ── Mode A: SATP-aware — share the contract deployed by deploy-dpp.js ───
     const deployed = JSON.parse(fs.readFileSync(ADDRESSES_FILE, "utf8"));
-    contractAddress = deployed.chain1.contractAddress;
-    console.log(`Using existing contract from deployed-addresses.json: ${contractAddress}`);
-    console.log("Supply-chain roles were already granted by deploy-dpp.js.");
-  } else {
+    const savedAddr = deployed.chain1.contractAddress;
+    // Verify the contract still exists on-chain (node may have been restarted)
+    const code = await provider.getCode(savedAddr);
+    if (code && code !== "0x") {
+      contractAddress = savedAddr;
+      needsDeploy = false;
+      console.log(`Using existing contract from deployed-addresses.json: ${contractAddress}`);
+      console.log("Supply-chain roles were already granted by deploy-dpp.js.");
+    } else {
+      console.log(`Contract at ${savedAddr} no longer exists (node was restarted?) — redeploying.`);
+      fs.unlinkSync(ADDRESSES_FILE);
+    }
+  }
+
+  if (needsDeploy) {
     // ── Mode B: Standalone — deploy fresh + grant roles + write file ─────────
     console.log("deployed-addresses.json not found — deploying fresh contract (standalone mode).");
     const compiled = compileContract();
@@ -241,7 +253,7 @@ async function main() {
   });
 
   app.get(`${base}/data`, async (req, res) => {
-    try { res.json(await leaf.getDPPData({ dppId: req.query.dppId || "0" })); }
+    try { res.json(await leaf.getDPPData({ dppId: String(req.query.dppId || "0") })); }
     catch (e: any) { res.status(500).json({ error: e.message }); }
   });
 
@@ -296,6 +308,11 @@ async function main() {
     catch (e: any) { res.status(500).json({ error: e.message }); }
   });
 
+  app.post(`${base}/disaggregate`, async (req, res) => {
+    try { res.json(await leafFor(req.body.handlerAddress).disaggregateDPP(req.body)); }
+    catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
   // ── Cross-chain transfer (proxies to SATP Hermes gateway-1) ──────────────
   /**
    * POST /cross-chain-transfer
@@ -328,10 +345,11 @@ async function main() {
       let metadataSnapshot: { productName: string; publicData: any; certifications: any[] } | null = null;
       try {
         const snap = await leaf.getDPPData({ dppId: tokenId });
+        const dd = snap.dppData!;
         metadataSnapshot = {
-          productName: snap.dppData.productName,
-          publicData:  snap.dppData.publicData || {},
-          certifications: snap.dppData.certifications || [],
+          productName: dd.productName || "",
+          publicData:  dd.publicData || {},
+          certifications: dd.certifications || [],
         };
       } catch { /* non-fatal — proceed without sync */ }
 

@@ -2,9 +2,9 @@ import type { LogLevelDesc } from "@hyperledger/cactus-common";
 import { ethers } from "ethers";
 import {
   CreateDPPRequest,
-  TransferRequest,
-  TransportDataRequest,
-  AggregateRequest,
+  TransferDPPRequest,
+  UpdateTransportDataRequest,
+  AggregateDPPRequest,
 } from "./public-api";
 
 /**
@@ -54,6 +54,8 @@ export abstract class DPPAbstract {
   public abstract aggregateDPPtoBox(request: any): Promise<any>;
 
   public abstract aggregateDPPtoLot(request: any): Promise<any>;
+
+  public abstract disaggregateDPP(request: any): Promise<any>;
 
   public abstract getDPPComponents(request: any): Promise<any>;
 

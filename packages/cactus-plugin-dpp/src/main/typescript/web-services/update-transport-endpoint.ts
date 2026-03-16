@@ -13,7 +13,7 @@ import {
 } from "@hyperledger/cactus-common";
 import { registerWebServiceEndpoint } from "@hyperledger/cactus-core";
 import { PluginDpp } from "../plugin-dpp";
-import { TransportDataRequest } from "../generated/openapi/typescript-axios";
+import { UpdateTransportDataRequest } from "../generated/openapi/typescript-axios";
 
 export interface IUpdateTransportEndpointOptions {
   logLevel?: LogLevelDesc;
@@ -72,7 +72,7 @@ export class UpdateTransportEndpoint implements IWebServiceEndpoint {
     this.log.debug(`${fnTag}`);
 
     try {
-      const requestBody = req.body as TransportDataRequest;
+      const requestBody = req.body as UpdateTransportDataRequest;
       await this.options.connector.updateTransport(requestBody);
       res.status(200).json({ description: "Transport Data Logged" });
     } catch (ex) {
