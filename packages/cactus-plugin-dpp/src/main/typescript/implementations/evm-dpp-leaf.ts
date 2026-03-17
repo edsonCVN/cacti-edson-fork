@@ -878,11 +878,11 @@ export class EVMDPPLeaf extends DPPAbstract {
       ]);
 
       const statesMap: { [key: number]: string } = {
-        0: "ACTIVE",
+        0: "CREATED",
         1: "IN_TRANSIT",
         2: "RECEIVED",
-        3: "RETAIL_READY",
-        4: "BURNED",
+        3: "RETAIL",
+        4: "REVOKED",
         5: "LOCKED_CROSSCHAIN",
       };
 
@@ -987,7 +987,7 @@ export class EVMDPPLeaf extends DPPAbstract {
           productId: "prod-1",
           productName: "Mock Product",
           owner: "0xconsumer",
-          status: "ACTIVE" as DPPDataStatusEnum,
+          status: "CREATED" as DPPDataStatusEnum,
           creationDate: new Date().toISOString(),
           publicData: { info: "This is a mock public data field." },
         },
