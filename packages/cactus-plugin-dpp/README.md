@@ -506,6 +506,7 @@ All endpoints are prefixed with `/api/v1/@hyperledger/cactus-plugin-dpp`.
 | `POST` | `/amend` | Amend DPP metadata |
 | `POST` | `/add-certification` | Add certification to a DPP |
 | `POST` | `/submit-product-review` | Submit consumer review |
+| `GET` | `/audit` | Full audit report — all DPPs with complete histories |
 | `POST` | `/cross-chain-transfer` | Initiate SATP cross-chain transfer (proxied to Gateway-1) |
 | `GET` | `/cross-chain-status?sessionId={id}` | Poll SATP session status (proxied to Gateway-1) |
 

@@ -388,6 +388,23 @@
         }
       }
     },
+    "/api/v1/@hyperledger/cactus-plugin-dpp/audit": {
+      "get": {
+        "summary": "Full DPP audit report — all passports with their complete histories",
+        "operationId": "getAuditReport",
+        "tags": ["Audit"],
+        "responses": {
+          "200": {
+            "description": "Audit report",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuditReportResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/@hyperledger/cactus-plugin-dpp/cross-chain-status": {
       "get": {
         "summary": "Poll SATP cross-chain transfer status",
@@ -772,6 +789,32 @@
         "type": "object",
         "properties": {
           "dppIds": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "AuditPassportEntry": {
+        "type": "object",
+        "properties": {
+          "tokenId": { "type": "string" },
+          "name": { "type": "string" },
+          "owner": { "type": "string" },
+          "status": { "type": "string" },
+          "data": { "type": "object", "description": "Full on-chain DPP data" },
+          "history": {
+            "type": "array",
+            "items": { "type": "object" },
+            "description": "Complete history events for this DPP"
+          }
+        }
+      },
+      "AuditReportResponse": {
+        "type": "object",
+        "properties": {
+          "generatedAt": { "type": "string", "format": "date-time" },
+          "totalPassports": { "type": "integer" },
+          "passports": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AuditPassportEntry" }
+          }
         }
       }
     }
