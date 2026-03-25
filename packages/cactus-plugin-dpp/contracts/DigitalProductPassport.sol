@@ -315,6 +315,10 @@ contract DigitalProductPassport is
         "ERC721: child token ID does not exist"
       );
       require(
+        _dppData[childId].state != DPPState.REVOKED,
+        "DPP is revoked"
+      );
+      require(
         _isAuthorized(childId),
         "Caller is not child owner nor gateway"
       );
@@ -428,6 +432,56 @@ contract DigitalProductPassport is
     emit DPPRevoked(tokenId, msg.sender, reason);
   }
 
+  /**
+   * @notice Restores full DPP data on the destination chain after a SATP
+   *         cross-chain transfer.  The SATP `mint()` creates only a
+   *         placeholder — this function fills in the real product name,
+   *         creation date, metadata URI, certifications, and source-chain
+   *         history so the DPP is fully equivalent to the original.
+   * @dev Only callable by DEFAULT_ADMIN_ROLE or GATEWAY_ROLE.
+   * @param tokenId       The DPP token to restore.
+   * @param productName   Original product name from the source chain.
+   * @param creationDate  Original ISO-8601 creation date.
+   * @param metadataURI   Original additionalMetadataURI (JSON blob or IPFS CID).
+   * @param certs         Array of certification strings to import.
+   * @param historyEntries Array of raw JSON history entries from the source chain.
+   */
+  function restoreCrossChainData(
+    uint256 tokenId,
+    string memory productName,
+    string memory creationDate,
+    string memory metadataURI,
+    string[] memory certs,
+    string[] memory historyEntries
+  ) public {
+    require(_ownerOf(tokenId) != address(0), "ERC721: invalid token ID");
+    require(
+      hasRole(DEFAULT_ADMIN_ROLE, msg.sender) || hasRole(GATEWAY_ROLE, msg.sender),
+      "Caller lacks restore permission"
+    );
+
+    _dppData[tokenId].productName = productName;
+    _dppData[tokenId].creationDate = creationDate;
+    _dppData[tokenId].additionalMetadataURI = metadataURI;
+
+    // Clear certifications added by previous restores to avoid duplicates
+    delete _certifications[tokenId];
+    for (uint i = 0; i < certs.length; i++) {
+      _certifications[tokenId].push(certs[i]);
+    }
+
+    // Clear existing history (removes the placeholder SATPMint event and any
+    // stale entries from previous cross-chain round-trips) before importing
+    // the authoritative source-chain history.
+    delete _history[tokenId];
+    for (uint i = 0; i < historyEntries.length; i++) {
+      _history[tokenId].push(historyEntries[i]);
+    }
+
+    // Record the cross-chain restore event itself
+    _addToHistory(tokenId, "CrossChainRestore", msg.sender);
+  }
+
   // ============================================================
   //  View Methods
   // ============================================================
@@ -505,6 +559,7 @@ contract DigitalProductPassport is
     address to,
     uint256 uniqueDescriptor
   ) external returns (bool) {
+    require(_dppData[uniqueDescriptor].state != DPPState.REVOKED, "DPP is revoked");
     _dppData[uniqueDescriptor].state = DPPState.LOCKED_CROSSCHAIN;
     _addToHistory(uniqueDescriptor, "SATPLock", msg.sender);
     emit SATPLocked(uniqueDescriptor, from, to);

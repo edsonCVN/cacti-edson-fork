@@ -81,7 +81,13 @@ function compileContract() {
 async function syncMetadataToChain2(
   sessionId: string,
   dppId: string,
-  snap: { productName: string; publicData: any; certifications: any[] },
+  snap: {
+    productName: string;
+    creationDate: string;
+    publicData: any;
+    certifications: string[];
+    history: string[];
+  },
 ) {
   const POLL_INTERVAL = 3000;
   const POLL_MAX = 60; // 3 min
@@ -105,34 +111,28 @@ async function syncMetadataToChain2(
     } catch { /* keep polling */ }
   }
 
-  console.log(`[metadata-sync] Session done. Syncing metadata for DPP ${dppId} to chain 2…`);
-
-  // Merge productName into publicData so that chain-2 getAllPassports can use it
-  const newData = { productName: snap.productName, ...(snap.publicData || {}) };
+  console.log(`[metadata-sync] Session done. Restoring full DPP ${dppId} on chain 2…`);
 
   try {
-    const res = await fetch(`${CHAIN2_API}${DPP_API_BASE}/amend`, {
+    const res = await fetch(`${CHAIN2_API}${DPP_API_BASE}/restore-cross-chain-data`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ dppId, newData }),
+      body: JSON.stringify({
+        dppId,
+        productName: snap.productName,
+        creationDate: snap.creationDate,
+        metadataURI: JSON.stringify(snap.publicData || {}),
+        certifications: snap.certifications,
+        history: snap.history,
+      }),
     });
     if (res.ok) {
-      console.log(`[metadata-sync] Metadata amended on chain 2 for DPP ${dppId}`);
+      console.log(`[metadata-sync] Full data restored on chain 2 for DPP ${dppId}`);
     } else {
-      console.error(`[metadata-sync] Amend failed: ${await res.text()}`);
+      console.error(`[metadata-sync] Restore failed: ${await res.text()}`);
     }
   } catch (e: any) {
-    console.error(`[metadata-sync] Amend request failed: ${e.message}`);
-  }
-
-  for (const cert of snap.certifications) {
-    try {
-      await fetch(`${CHAIN2_API}${DPP_API_BASE}/add-certification`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dppId, certificationData: cert }),
-      });
-    } catch { /* non-fatal */ }
+    console.error(`[metadata-sync] Restore request failed: ${e.message}`);
   }
 
   console.log(`[metadata-sync] Complete for DPP ${dppId}`);
@@ -262,6 +262,20 @@ async function main() {
     catch (e: any) { res.status(500).json({ error: e.message }); }
   });
 
+  // Restore full DPP data after cross-chain transfer (called by the source chain's sync)
+  app.post(`${base}/restore-cross-chain-data`, async (req, res) => {
+    try {
+      res.json(await leaf.restoreCrossChainData({
+        dppId: req.body.dppId,
+        productName: req.body.productName,
+        creationDate: req.body.creationDate,
+        metadataURI: req.body.metadataURI,
+        certifications: req.body.certifications || [],
+        history: req.body.history || [],
+      }));
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
   app.post(`${base}/update-transport-data`, async (req, res) => {
     const addr = req.body.handlerAddress || req.body.transportData?.handlerAddress;
     try { res.json(await leafFor(addr).updateTransportData(req.body)); }
@@ -341,15 +355,29 @@ async function main() {
 
       const tokenId = String(req.body.dppId ?? req.body.tokenId);
 
-      // Snapshot metadata BEFORE the lock so we can restore it on chain 2 after transfer
-      let metadataSnapshot: { productName: string; publicData: any; certifications: any[] } | null = null;
+      // Snapshot ALL data BEFORE the lock so we can fully restore on chain 2
+      let metadataSnapshot: {
+        productName: string;
+        creationDate: string;
+        publicData: any;
+        certifications: string[];
+        history: string[];
+      } | null = null;
       try {
         const snap = await leaf.getDPPData({ dppId: tokenId });
         const dd = snap.dppData!;
+        // Read raw on-chain history (own events only, no merged child/origin
+        // histories) to avoid duplicating inherited entries on repeated transfers
+        let historyEntries: string[] = [];
+        try {
+          historyEntries = await leaf.getRawHistory(tokenId);
+        } catch { /* non-fatal */ }
         metadataSnapshot = {
           productName: dd.productName || "",
+          creationDate: dd.creationDate || "",
           publicData:  dd.publicData || {},
-          certifications: dd.certifications || [],
+          certifications: (dd.certifications || []).map((c: any) => typeof c === "string" ? c : JSON.stringify(c)),
+          history: historyEntries,
         };
       } catch { /* non-fatal — proceed without sync */ }
 

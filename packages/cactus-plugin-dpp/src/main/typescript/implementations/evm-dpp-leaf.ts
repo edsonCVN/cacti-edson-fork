@@ -125,6 +125,7 @@ export class EVMDPPLeaf extends DPPAbstract {
     "function assign(address to, uint256 uniqueDescriptor) external returns (bool)",
     "function grantBridgeRole(address account) external returns (bool)",
     "function hasBridgeRole(address account) external view returns (bool)",
+    "function restoreCrossChainData(uint256 tokenId, string memory productName, string memory creationDate, string memory metadataURI, string[] memory certs, string[] memory historyEntries) public",
     // ERC721 events (required for queryFilter / filters)
     "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)",
   ];
@@ -361,6 +362,54 @@ export class EVMDPPLeaf extends DPPAbstract {
       throw new Error(
         `Failed to add Certification to DPP on EVM: ${error.message}`,
       );
+    }
+  }
+
+  /**
+   * Restores full DPP data on the destination chain after a cross-chain
+   * transfer.  Writes productName, creationDate, metadata URI, certifications,
+   * and the complete source-chain history in a single transaction.
+   */
+  public async restoreCrossChainData(args: {
+    dppId: string;
+    productName: string;
+    creationDate: string;
+    metadataURI: string;
+    certifications: string[];
+    history: string[];
+  }): Promise<GenericResponse> {
+    this.log.debug(`restoreCrossChainData called for DPP: ${args.dppId}`);
+    try {
+      const tx = await this.dppContract.restoreCrossChainData(
+        args.dppId,
+        args.productName,
+        args.creationDate,
+        args.metadataURI,
+        args.certifications,
+        args.history,
+      );
+      await tx.wait();
+      return this.createSuccessResponse(
+        `Cross-chain data restored for DPP ${args.dppId}`,
+        tx.hash,
+      );
+    } catch (error: any) {
+      this.log.error(`restoreCrossChainData exception: ${error.message}`);
+      throw new Error(`Failed to restore cross-chain data: ${error.message}`);
+    }
+  }
+
+  /**
+   * Returns the raw on-chain history entries for a single token — no merging
+   * of children or origin histories.  Used by the cross-chain snapshot to
+   * avoid duplicating inherited events on repeated transfers.
+   */
+  public async getRawHistory(dppId: string): Promise<string[]> {
+    try {
+      const raw: string[] = await this.dppContract.getHistory(dppId);
+      return raw;
+    } catch {
+      return [];
     }
   }
 

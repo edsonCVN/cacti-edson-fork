@@ -54,12 +54,23 @@ A Digital Product Passport is an ERC-721 NFT that carries structured metadata ab
 
 SATP Cross-Chain Transfer Phases:
   Phase 1 — Lock    [Chain 1]: lock(user, bridge, tokenId)
-  Phase 2 — Mint    [Chain 2]: mint(bridge, tokenId)
+  Phase 2 — Mint    [Chain 2]: mint(bridge, tokenId)     ← placeholder metadata
   Phase 3 — Assign  [Chain 2]: assign(receiver, tokenId)
            — Burn   [Chain 1]: burn(tokenId)
+  Post-transfer:    [Chain 2]: restoreCrossChainData(...)  ← full data + history
 ```
 
 Both the API Gateway and the SATP Hermes Gateways operate on the **same deployed contract** (address shared via `gateway/deployed-addresses.json`), so local lifecycle operations and cross-chain transfers can happen concurrently.
+
+### Cross-Chain Data Preservation
+
+The SATP `mint()` function creates only a placeholder token on the destination chain (with generic name, empty metadata, and no history). To ensure **zero data loss**, the API gateway:
+
+1. **Snapshots** the complete DPP data before the lock: `productName`, `creationDate`, full metadata JSON, all certifications, and the entire on-chain history
+2. **Polls** the SATP session until it reaches `DONE`/`COMPLETED`
+3. **Calls `restoreCrossChainData()`** on the destination chain in a single transaction, restoring all fields and importing the source-chain history
+
+After restoration, the DPP on the destination chain is identical to the original, plus a `CrossChainRestore` event marking the transfer and the original `SATPMint` event from the bridge.
 
 ### Source Structure
 
@@ -125,9 +136,12 @@ CREATED → IN_TRANSIT → RECEIVED → RETAIL
 ```
 
 > **`notRevoked` modifier** — All state-changing functions on the smart contract
-> check `require(dppData[tokenId].status != DPPDataStatus.REVOKED)`, preventing
-> any further operations on revoked DPPs (aggregated children, disaggregated
-> origins, or manually revoked passports).
+> check `require(dppData[tokenId].state != DPPState.REVOKED)`, preventing
+> any further operations on revoked DPPs. This includes `transferDPP`, `amendDPPData`,
+> `addCertification`, `updateTransportData`, `markAsReceived`, `updateRetailData`,
+> `disaggregateDPP`, `aggregateDPPs` (on each child token), and `lock` (SATP bridge).
+> Revoked DPPs remain readable for audit purposes but cannot be modified, transferred,
+> aggregated, or locked for cross-chain transfer.
 
 ### Supply Chain Functions
 
@@ -143,6 +157,7 @@ CREATED → IN_TRANSIT → RECEIVED → RETAIL
 | `disaggregateDPP` | Processor | Split a DPP into N new children, revoke origin |
 | `transferDPP` | Owner/Admin | Transfer ownership with history tracking |
 | `revokeDPP` | Owner/Gateway | Permanently revoke a DPP |
+| `restoreCrossChainData` | Admin/Gateway | Restore full DPP data (name, date, metadata, certs, history) on the destination chain after a SATP transfer |
 
 ### SATP Bridge Functions
 
@@ -150,7 +165,7 @@ These match the exact signatures expected by the SATPWrapper bridge contract dep
 
 | Function | Role | SATP Phase | Description |
 |----------|------|-----------|-------------|
-| `lock(from, to, tokenId)` | Any (requires prior `approve`) | Phase 1 | Transfer NFT from owner to bridge custody |
+| `lock(from, to, tokenId)` | Any (requires prior `approve`) | Phase 1 | Transfer NFT from owner to bridge custody (rejects revoked DPPs) |
 | `unlock(from, to, tokenId)` | Any | Rollback | Return NFT from bridge to owner on failure |
 | `burn(tokenId)` | `BRIDGE_ROLE` | Phase 3 (source) | Destroy NFT on source chain after commit |
 | `mint(account, tokenId)` | `BRIDGE_ROLE` | Phase 2 (destination) | Create NFT on destination chain |
@@ -238,7 +253,7 @@ npx ts-node --project tsconfig.hardhat.json scripts/launch-api-chain2.ts
 
 Because `gateway/deployed-addresses.json` already exists, `launch-api.ts` will skip deployment and connect to the same contracts that the SATP gateways use. Local lifecycle operations and cross-chain transfers can now happen in parallel.
 
-`launch-api-chain2.ts` connects to port 8546 (chain 2), reads `deployed.chain2.contractAddress`, and exposes all read and write endpoints on port 3003. It does **not** expose `/cross-chain-transfer` (chain 2 is destination-only).
+`launch-api-chain2.ts` connects to port 8546 (chain 2), reads `deployed.chain2.contractAddress`, and exposes all read and write endpoints on port 3003 — including `/cross-chain-transfer` (chain 2 → chain 1 via SATP gateway-2) and `/restore-cross-chain-data` (receives full DPP data from the source chain's background sync).
 
 ---
 
@@ -507,6 +522,7 @@ All endpoints are prefixed with `/api/v1/@hyperledger/cactus-plugin-dpp`.
 | `POST` | `/add-certification` | Add certification to a DPP |
 | `POST` | `/submit-product-review` | Submit consumer review |
 | `GET` | `/audit` | Full audit report — all DPPs with complete histories |
+| `POST` | `/restore-cross-chain-data` | Restore full DPP data on destination chain after SATP transfer |
 | `POST` | `/cross-chain-transfer` | Initiate SATP cross-chain transfer (proxied to Gateway-1) |
 | `GET` | `/cross-chain-status?sessionId={id}` | Poll SATP session status (proxied to Gateway-1) |
 
