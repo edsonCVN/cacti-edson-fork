@@ -178,7 +178,7 @@ export class EVMDPPLeaf extends DPPAbstract {
       const metadataObj: Record<string, any> = {
         name: pd.name || "Unnamed Product",
         description: pd.description || "",
-        image: pd.image || "ipfs://placeholder_image_cid",
+        image: pd.image || "",
         origin: pd.origin || "",
         productionMethod: pd.productionMethod || "",
         variety: pd.variety || "",
@@ -186,6 +186,7 @@ export class EVMDPPLeaf extends DPPAbstract {
         brixDegree: pd.brixDegree || "",
         certifications: pd.certifications || [],
         manufacturer: pd.manufacturer || "",
+        metadataCid: pd.metadataCid || "",
         logistics: pd.logistics || { storage_temp: "2°C - 4°C" },
         circular_economy: pd.circular_economy || {
           packaging: [
@@ -608,6 +609,8 @@ export class EVMDPPLeaf extends DPPAbstract {
       const allOrigins: string[] = [];
       const childNames: string[] = [];
       let latestDate = "";
+      let firstImage = "";
+      let firstMetadataCid = "";
 
       for (const childId of childIds) {
         try {
@@ -631,6 +634,12 @@ export class EVMDPPLeaf extends DPPAbstract {
           if (cd.creationDate && cd.creationDate > latestDate) {
             latestDate = cd.creationDate;
           }
+          if (!firstImage && pub.image && pub.image !== "ipfs://placeholder_image_cid") {
+            firstImage = pub.image;
+          }
+          if (!firstMetadataCid && pub.metadataCid) {
+            firstMetadataCid = pub.metadataCid;
+          }
         } catch (e: any) {
           this.log.warn(
             `Could not fetch metadata for child ${childId}: ${e.message}`,
@@ -645,7 +654,8 @@ export class EVMDPPLeaf extends DPPAbstract {
       const mergedMetadata: Record<string, any> = {
         name: lotName,
         description: `Aggregated lot containing ${childIds.length} DPPs: ${childNames.join(", ")}`,
-        image: "ipfs://placeholder_image_cid",
+        image: firstImage || "",
+        metadataCid: firstMetadataCid || "",
         origin: allOrigins.join(", ") || "",
         variety: allVarieties.join(", ") || "",
         calibre: allCalibres.join(", ") || "",
@@ -1081,6 +1091,7 @@ export class EVMDPPLeaf extends DPPAbstract {
           status: (dd.status || "UNKNOWN").toLowerCase().replace("_", "-"),
           ipfsUri: JSON.stringify(dd.publicData),
           ownerAddress: owner,
+          image: pub.image || "",
         });
       } catch {
         // burned or non-existent — skip

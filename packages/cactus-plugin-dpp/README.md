@@ -16,6 +16,7 @@ A Digital Product Passport is an ERC-721 NFT that carries structured metadata ab
 - **Ontology-Driven Gateway** — An ontology JSON file maps SATP protocol phases to the contract's Solidity function signatures, following the SATP Case 2 (EVM NFA transfer) pattern
 - **Dual-mode API Gateway** — Shares the same contract with the SATP gateways when `deployed-addresses.json` exists; falls back to standalone deploy otherwise
 - **Express API Gateway** — REST API that dispatches transactions with role-aware signer selection, including a `/cross-chain-transfer` proxy to SATP gateway-1
+- **IPFS Integration** — Product images and full ERC-721 metadata JSON are pinned to IPFS via Pinata at mint time. The on-chain record stores both the IPFS CID and the inline JSON; IPFS serves as an immutable snapshot of the original metadata while the on-chain JSON remains the source of truth for current state. Aggregated lots inherit the first child's image and metadata CID
 
 ## Architecture
 

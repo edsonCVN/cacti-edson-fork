@@ -502,7 +502,7 @@
           "dppId": { "type": "string" },
           "productId": { "type": "string" },
           "productName": { "type": "string" },
-          "status": { "type": "string", "enum": ["ACTIVE", "IN_TRANSIT", "RECEIVED", "RETAIL_READY", "BURNED", "LOCKED_CROSSCHAIN", "REVOKED", "UNKNOWN"] },
+          "status": { "type": "string", "enum": ["CREATED", "IN_TRANSIT", "RECEIVED", "RETAIL", "REVOKED", "LOCKED_CROSSCHAIN", "UNKNOWN"] },
           "creationDate": { "type": "string" },
           "owner": { "type": "string" },
           "publicData": { "type": "object", "description": "Parsed JSON metadata" },
