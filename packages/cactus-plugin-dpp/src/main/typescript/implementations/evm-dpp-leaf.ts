@@ -115,6 +115,7 @@ export class EVMDPPLeaf extends DPPAbstract {
     "function getCertifications(uint256 tokenId) public view returns (string[])",
     "function getDPPComponents(uint256 tokenId) public view returns (uint256[])",
     "function getHistory(uint256 tokenId) public view returns (string[])",
+    "function getDPPDataUnchecked(uint256 tokenId) public view returns (tuple(string productId, string productName, uint8 state, string creationDate, string additionalMetadataURI))",
     "function ownerOf(uint256 tokenId) public view returns (address)",
     "function approve(address to, uint256 tokenId) public",
     // SATP bridge functions
@@ -1099,6 +1100,62 @@ export class EVMDPPLeaf extends DPPAbstract {
     }
 
     console.log(`[getAllPassports] Returning ${allDPPs.length} DPPs.`);
+    return allDPPs;
+  }
+
+  /**
+   * Returns ALL tokens ever minted on this chain, including burned ones
+   * (consumed by aggregation, disaggregation, or SATP cross-chain transfer).
+   * Uses getDPPDataUnchecked (no ownership check) so burned token data is
+   * still readable.  Used by the /audit endpoint.
+   */
+  public async getAllPassportsForAudit(): Promise<any[]> {
+    this.log.debug("getAllPassportsForAudit called");
+
+    const mintFilter = this.dppContract.filters.Transfer(
+      ethers.constants.AddressZero,
+      null,
+      null,
+    );
+    const mintEvents = await this.dppContract.queryFilter(mintFilter);
+    const tokenIds = [
+      ...new Set(mintEvents.map((e) => e.args?.tokenId.toString() as string)),
+    ];
+
+    const statesMap: { [key: number]: string } = {
+      0: "CREATED", 1: "IN_TRANSIT", 2: "RECEIVED",
+      3: "RETAIL", 4: "REVOKED", 5: "LOCKED_CROSSCHAIN",
+    };
+
+    const allDPPs: any[] = [];
+    for (const tokenId of tokenIds) {
+      try {
+        const data = await this.dppContract.getDPPDataUnchecked(tokenId);
+        // Skip tokens that were never actually minted (empty productName)
+        if (!data.productName && !data.productId) continue;
+
+        let owner = "";
+        try { owner = await this.dppContract.ownerOf(tokenId); } catch { /* burned */ }
+
+        let publicData: any = {};
+        try { publicData = JSON.parse(data.additionalMetadataURI); } catch {}
+
+        const statusString = statesMap[data.state] || "UNKNOWN";
+        allDPPs.push({
+          id: tokenId,
+          tokenId,
+          name: publicData.name || data.productName || data.productId,
+          createdAt: data.creationDate,
+          status: statusString.toLowerCase().replace("_", "-"),
+          ownerAddress: owner || "burned",
+          image: publicData.image || "",
+        });
+      } catch {
+        // truly non-existent — skip
+      }
+    }
+
+    this.log.info(`[audit] Found ${allDPPs.length} DPPs (including burned)`);
     return allDPPs;
   }
 

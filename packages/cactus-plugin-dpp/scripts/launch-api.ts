@@ -457,21 +457,16 @@ async function main() {
   // ── Full DPP audit — fetches all passports + their complete histories ─────
   app.get(`${base}/audit`, async (_req, res) => {
     try {
-      const passports = await leaf.getAllPassports();
+      const passports = await leaf.getAllPassportsForAudit();
       const auditEntries = await Promise.all(
         passports.map(async (p: any) => {
-          const tokenId = p.tokenId ?? p.id;
+          const tokenId = String(p.tokenId ?? p.id);
+          // Use getRawHistory — works for burned tokens (getHistory has no ownership check)
           let history: any[] = [];
-          let data: any = null;
           try {
-            const histRes = await leaf.getDPPHistory({ dppId: String(tokenId) }) as any;
-            history = histRes.history ?? histRes ?? [];
-          } catch { /* token may be burned/revoked — skip history */ }
-          try {
-            const dataRes = await leaf.getDPPData({ dppId: String(tokenId) });
-            data = dataRes.dppData ?? dataRes ?? null;
+            history = await leaf.getRawHistory(tokenId);
           } catch { /* skip */ }
-          return { tokenId: String(tokenId), name: p.name, owner: p.ownerAddress, status: p.status, data, history };
+          return { tokenId, name: p.name, owner: p.ownerAddress, status: p.status, history };
         }),
       );
       res.json({

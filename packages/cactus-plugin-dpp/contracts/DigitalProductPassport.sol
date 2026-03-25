@@ -497,6 +497,20 @@ contract DigitalProductPassport is
   }
 
   /**
+   * @notice Returns the core on-chain data for a DPP including burned/revoked
+   *         tokens.  Unlike `getDPPData`, this does NOT revert for tokens whose
+   *         ownership has been cleared (e.g. burned via SATP or aggregation).
+   *         The `_dppData` mapping persists even after burn.
+   * @dev    Used by the audit endpoint to reconstruct the full lifecycle of
+   *         every token that ever existed on the chain.
+   * @param tokenId The DPP token to query.
+   * @return data   The DPPData struct (may have empty fields for never-minted IDs).
+   */
+  function getDPPDataUnchecked(uint256 tokenId) public view returns (DPPData memory) {
+    return _dppData[tokenId];
+  }
+
+  /**
    * @notice Returns the full transport history for a DPP.
    * @param tokenId The DPP token to query.
    * @return events Array of TransportEvent structs.
