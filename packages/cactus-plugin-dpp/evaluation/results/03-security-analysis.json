@@ -1,0 +1,100 @@
+{
+  "timestamp": "2026-03-25T16:29:12.367Z",
+  "tests": [
+    {
+      "name": "createDPP rejects unauthorized",
+      "passed": true
+    },
+    {
+      "name": "createDPP rejects processor",
+      "passed": true
+    },
+    {
+      "name": "amendDPPData rejects unauthorized",
+      "passed": true
+    },
+    {
+      "name": "amendDPPData rejects farmer",
+      "passed": true
+    },
+    {
+      "name": "addCertification rejects unauthorized",
+      "passed": true
+    },
+    {
+      "name": "updateTransportData rejects unauthorized",
+      "passed": true
+    },
+    {
+      "name": "updateTransportData rejects farmer",
+      "passed": true
+    },
+    {
+      "name": "markAsReceived rejects unauthorized",
+      "passed": true
+    },
+    {
+      "name": "markAsReceived rejects farmer",
+      "passed": true
+    },
+    {
+      "name": "aggregateDPPs rejects unauthorized",
+      "passed": true
+    },
+    {
+      "name": "burn rejects non-bridge",
+      "passed": true
+    },
+    {
+      "name": "mint rejects non-bridge",
+      "passed": true
+    },
+    {
+      "name": "transferDPP rejects revoked DPP",
+      "passed": true
+    },
+    {
+      "name": "amendDPPData rejects revoked DPP",
+      "passed": true
+    },
+    {
+      "name": "addCertification rejects revoked DPP",
+      "passed": true
+    },
+    {
+      "name": "updateTransportData rejects revoked DPP",
+      "passed": true
+    },
+    {
+      "name": "markAsReceived rejects revoked DPP",
+      "passed": true
+    },
+    {
+      "name": "disaggregateDPP rejects revoked DPP",
+      "passed": true
+    },
+    {
+      "name": "lock rejects revoked DPP",
+      "passed": true
+    },
+    {
+      "name": "aggregateDPPs rejects revoked child",
+      "passed": true
+    },
+    {
+      "name": "grantBridgeRole rejects non-owner",
+      "passed": true
+    },
+    {
+      "name": "restoreCrossChainData rejects unauthorized",
+      "passed": true
+    },
+    {
+      "name": "restoreCrossChainData rejects farmer",
+      "passed": true
+    }
+  ],
+  "passed": 23,
+  "total": 23,
+  "slitherNote": "Run Slither separately: slither contracts/DigitalProductPassport.sol --solc-remaps '@openzeppelin=node_modules/@openzeppelin' --json evaluation/results/03-slither-report.json"
+}

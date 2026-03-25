@@ -1,0 +1,63 @@
+{
+  "timestamp": "2026-03-25T16:28:58.475Z",
+  "tests": [
+    {
+      "name": "Metadata hash matches after cross-chain transfer",
+      "passed": true,
+      "details": "before=01f289f04340fce9 after=01f289f04340fce9"
+    },
+    {
+      "name": "Product name preserved",
+      "passed": true,
+      "details": "\"Integrity Test\""
+    },
+    {
+      "name": "Creation date preserved",
+      "passed": true,
+      "details": "\"2025-06-15\""
+    },
+    {
+      "name": "History count = source events + CrossChainRestore",
+      "passed": true,
+      "details": "got 2, expected 2"
+    },
+    {
+      "name": "Last history event is CrossChainRestore",
+      "passed": true,
+      "details": "got \"CrossChainRestore\""
+    },
+    {
+      "name": "All source history events preserved in order",
+      "passed": true
+    },
+    {
+      "name": "Round-trip: correct event count (no duplicates)",
+      "passed": true,
+      "details": "got 3, expected 3"
+    },
+    {
+      "name": "Round-trip: no duplicate Mint events",
+      "passed": true,
+      "details": "found 1 Mint event(s)"
+    },
+    {
+      "name": "Round-trip: metadata hash preserved",
+      "passed": true
+    },
+    {
+      "name": "State is LOCKED_CROSSCHAIN after lock",
+      "passed": true,
+      "details": "state=5"
+    },
+    {
+      "name": "State is CREATED after unlock (rollback)",
+      "passed": true,
+      "details": "state=0"
+    },
+    {
+      "name": "Owner restored to farmer after unlock",
+      "passed": true,
+      "details": "owner=0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+    }
+  ]
+}

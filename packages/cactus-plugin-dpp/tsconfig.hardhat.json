@@ -12,6 +12,5 @@
       "**/*.ts": "cjs"
     }
   },
-  "include": ["hardhat.config.ts", "./scripts", "./test", "./typechain-types"],
-  "files": ["./hardhat.config.ts"]
+  "include": ["hardhat.config.ts", "./scripts", "./test", "./typechain-types", "./evaluation"]
 }

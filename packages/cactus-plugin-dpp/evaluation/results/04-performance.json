@@ -1,0 +1,89 @@
+{
+  "timestamp": "2026-03-25T16:40:17.702Z",
+  "environment": "Hardhat local node (single validator)",
+  "throughput": {
+    "totalDPPs": 50,
+    "totalTimeMs": 514,
+    "txPerSecond": 97.27626459143968
+  },
+  "operationLatencies": [
+    {
+      "operation": "createDPP",
+      "samples": 50,
+      "avgMs": 10,
+      "minMs": 7,
+      "maxMs": 12,
+      "p95Ms": 12
+    },
+    {
+      "operation": "amendDPPData",
+      "samples": 10,
+      "avgMs": 10,
+      "minMs": 9,
+      "maxMs": 11,
+      "p95Ms": 11
+    },
+    {
+      "operation": "addCertification",
+      "samples": 10,
+      "avgMs": 9,
+      "minMs": 8,
+      "maxMs": 10,
+      "p95Ms": 10
+    },
+    {
+      "operation": "updateTransportData",
+      "samples": 10,
+      "avgMs": 10,
+      "minMs": 9,
+      "maxMs": 11,
+      "p95Ms": 11
+    },
+    {
+      "operation": "transferDPP",
+      "samples": 10,
+      "avgMs": 20,
+      "minMs": 17,
+      "maxMs": 22,
+      "p95Ms": 22
+    },
+    {
+      "operation": "getDPPData (read)",
+      "samples": 10,
+      "avgMs": 2,
+      "minMs": 2,
+      "maxMs": 3,
+      "p95Ms": 3
+    },
+    {
+      "operation": "getHistory (read)",
+      "samples": 10,
+      "avgMs": 3,
+      "minMs": 3,
+      "maxMs": 4,
+      "p95Ms": 4
+    }
+  ],
+  "scalabilityCurve": [
+    {
+      "dppCount": 10,
+      "readLatencyMs": 2,
+      "writeLatencyMs": 10
+    },
+    {
+      "dppCount": 50,
+      "readLatencyMs": 2,
+      "writeLatencyMs": 10
+    },
+    {
+      "dppCount": 100,
+      "readLatencyMs": 2,
+      "writeLatencyMs": 9
+    },
+    {
+      "dppCount": 200,
+      "readLatencyMs": 2,
+      "writeLatencyMs": 11
+    }
+  ]
+}
