@@ -411,7 +411,10 @@ async function main() {
     operations: results,
     totalGas,
     summary,
-    crossChainTimings: crossChainTimings.length > 0 ? crossChainTimings : "SATP not available — skipped",
+    crossChainTimings:
+      crossChainTimings.length > 0
+        ? crossChainTimings
+        : "SATP not available — skipped",
   });
 
   pass("Gas profiling complete!");

@@ -836,11 +836,13 @@ export class EVMDPPLeaf extends DPPAbstract {
       // Also persist the shipping entry in the on-chain metadata (publicData)
       try {
         const dppData = await this.dppContract.getDPPData(request.dppId);
-        let publicData: any = {};
+        const existingURI = dppData.additionalMetadataURI || "";
+        let publicData: any;
         try {
-          publicData = JSON.parse(dppData.additionalMetadataURI);
+          publicData = JSON.parse(existingURI);
         } catch {
-          /* empty */
+          // Existing URI is not JSON (e.g. IPFS CID) — wrap it to preserve it
+          publicData = { originalMetadataURI: existingURI };
         }
 
         if (!publicData.logistics) publicData.logistics = {};
@@ -894,24 +896,30 @@ export class EVMDPPLeaf extends DPPAbstract {
       );
       await tx.wait();
 
-      // Persist retail info in metadata
-      try {
-        const dppData = await this.dppContract.getDPPData(request.dppId);
-        let publicData: any = {};
+      // Persist retail info in metadata (only if there are fields to add)
+      if (shelfLife || price) {
         try {
-          publicData = JSON.parse(dppData.additionalMetadataURI);
-        } catch {}
-        if (shelfLife) publicData.shelfLife = shelfLife;
-        if (price) publicData.price = price;
-        const amendTx = await this.dppContract.amendDPPData(
-          request.dppId,
-          JSON.stringify(publicData),
-        );
-        await amendTx.wait();
-      } catch (amendErr: any) {
-        this.log.warn(
-          `Retail metadata amend failed (non-fatal): ${amendErr.message}`,
-        );
+          const dppData = await this.dppContract.getDPPData(request.dppId);
+          const existingURI = dppData.additionalMetadataURI || "";
+          let publicData: any;
+          try {
+            publicData = JSON.parse(existingURI);
+          } catch {
+            // Existing URI is not JSON (e.g. IPFS CID) — wrap it to preserve it
+            publicData = { originalMetadataURI: existingURI };
+          }
+          if (shelfLife) publicData.shelfLife = shelfLife;
+          if (price) publicData.price = price;
+          const amendTx = await this.dppContract.amendDPPData(
+            request.dppId,
+            JSON.stringify(publicData),
+          );
+          await amendTx.wait();
+        } catch (amendErr: any) {
+          this.log.warn(
+            `Retail metadata amend failed (non-fatal): ${amendErr.message}`,
+          );
+        }
       }
 
       return this.createSuccessResponse(
