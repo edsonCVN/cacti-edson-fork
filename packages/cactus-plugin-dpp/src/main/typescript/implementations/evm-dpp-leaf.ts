@@ -1107,7 +1107,7 @@ export class EVMDPPLeaf extends DPPAbstract {
       }
     }
 
-    console.log(`[getAllPassports] Returning ${allDPPs.length} DPPs.`);
+    this.log.debug(`[getAllPassports] Returning ${allDPPs.length} DPPs.`);
     return allDPPs;
   }
 

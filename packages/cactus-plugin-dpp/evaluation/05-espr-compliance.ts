@@ -4,8 +4,9 @@
  * Validates that the DPP implementation satisfies EU Ecodesign for Sustainable
  * Products Regulation (ESPR) information requirements.
  *
- * Maps ESPR Article 8 data requirements to on-chain metadata fields and verifies
- * each is present and populated in a real DPP.
+ * Maps ESPR provisions (Articles 9-11 and Annex III of Regulation 2024/1781)
+ * to on-chain and off-chain data fields and verifies each is present and
+ * populated in a real DPP instance.
  *
  * Research question: Does the DPP implementation satisfy EU ESPR information requirements?
  *
@@ -23,11 +24,12 @@ import {
   writeResults,
 } from "./shared";
 
-// ─── ESPR Article 8 — Required DPP Information ──────────────────────────────
-// Reference: EU Regulation 2024/1781 (ESPR), Article 8 — Digital Product Passport
+// ─── ESPR Requirements — Articles 9-11 and Annex III ───────────────────────
+// Reference: EU Regulation 2024/1781 (ESPR)
 
 interface ESPRRequirement {
   id: string;
+  provision: string;
   category: string;
   requirement: string;
   metadataField: string;
@@ -36,9 +38,10 @@ interface ESPRRequirement {
 }
 
 const ESPR_REQUIREMENTS: ESPRRequirement[] = [
-  // Product Identification
+  // Product Identification (Annex III)
   {
-    id: "8.2.a",
+    id: "R01",
+    provision: "Annex III(a-c)",
     category: "Product Identification",
     requirement: "Unique product identifier",
     metadataField: "—",
@@ -46,66 +49,74 @@ const ESPR_REQUIREMENTS: ESPRRequirement[] = [
     description: "Auto-generated on-chain as PROD-{tokenId} or LOT-{tokenId}",
   },
   {
-    id: "8.2.b",
+    id: "R02",
+    provision: "Annex III(a)",
     category: "Product Identification",
     requirement: "Product name and description",
     metadataField: "name, description",
     contractField: "productName",
     description: "Stored both on-chain (productName) and in metadata JSON",
   },
-  // Manufacturer / Producer
+  // Manufacturer / Producer (Annex III)
   {
-    id: "8.2.c",
+    id: "R03",
+    provision: "Annex III(g)",
     category: "Manufacturer",
     requirement: "Manufacturer/producer identity",
     metadataField: "manufacturer",
     description:
       "Producer name stored in metadata (e.g., 'Quinta da Gardunha')",
   },
-  // Origin & Traceability
+  // Origin & Traceability (Art. 9(3))
   {
-    id: "8.2.d",
-    category: "Origin & Traceability",
+    id: "R04",
+    provision: "Art. 9(3)",
+    category: "Traceability",
     requirement: "Geographic origin of the product",
     metadataField: "origin",
     description: "Production origin (e.g., 'Fundão, Portugal')",
   },
   {
-    id: "8.2.e",
-    category: "Origin & Traceability",
+    id: "R05",
+    provision: "Art. 9(3)",
+    category: "Traceability",
     requirement: "Production method",
     metadataField: "productionMethod",
     description: "Agricultural/industrial method (e.g., 'Produção Integrada')",
   },
   {
-    id: "8.2.f",
-    category: "Origin & Traceability",
+    id: "R06",
+    provision: "Art. 9(3)",
+    category: "Traceability",
     requirement: "Supply chain traceability / chain of custody",
     metadataField: "—",
     contractField: "_history[] (on-chain JSON events)",
     description:
       "Every lifecycle event recorded with actor address and timestamp",
   },
-  // Materials & Composition
+  // Materials & Composition (Annex III)
   {
-    id: "8.2.g",
-    category: "Materials & Composition",
+    id: "R07",
+    provision: "Annex III(a)",
+    category: "Composition",
     requirement: "Product composition / variety",
     metadataField: "variety, calibre, brixDegree",
     description: "Product-specific attributes (variety, size, sugar content)",
   },
-  // Certifications & Compliance
+  // Certifications & Compliance (Annex III)
   {
-    id: "8.2.h",
+    id: "R08",
+    provision: "Annex III(e)",
     category: "Certifications",
-    requirement: "Certifications and compliance marks",
+    requirement: "Compliance documentation",
     metadataField: "certifications[]",
     contractField: "_certifications[] (on-chain array)",
     description: "IGP, GlobalG.A.P., ISO certifications stored on-chain",
   },
-  // Packaging & Circular Economy
+  // Packaging & Circular Economy (Art. 9(2))
   {
-    id: "8.2.i",
+    id: "R09",
+    provision: "Art. 9(2)",
     category: "Circular Economy",
     requirement: "Packaging materials and recyclability",
     metadataField: "circular_economy.packaging[]",
@@ -113,22 +124,25 @@ const ESPR_REQUIREMENTS: ESPRRequirement[] = [
       "Material, recyclability %, disposal instructions per packaging component",
   },
   {
-    id: "8.2.j",
+    id: "R10",
+    provision: "Annex III(f)",
     category: "Circular Economy",
-    requirement: "End-of-life disposal instructions",
+    requirement: "Disposal instructions",
     metadataField: "circular_economy.instructions",
     description: "User-facing recycling instructions",
   },
   {
-    id: "8.2.k",
+    id: "R11",
+    provision: "Art. 9(2)",
     category: "Circular Economy",
     requirement: "Return/reuse schemes",
     metadataField: "circular_economy.return_scheme",
     description: "Incentive programs for packaging return",
   },
-  // Logistics & Storage
+  // Logistics & Storage (Art. 9(2))
   {
-    id: "8.2.l",
+    id: "R12",
+    provision: "Art. 9(2)",
     category: "Logistics",
     requirement: "Storage and transport conditions",
     metadataField: "logistics.storage_temp",
@@ -136,17 +150,19 @@ const ESPR_REQUIREMENTS: ESPRRequirement[] = [
     description:
       "Temperature, humidity, and condition data recorded per shipment",
   },
-  // Retail & Shelf Life
+  // Retail & Shelf Life (Art. 9(2))
   {
-    id: "8.2.m",
+    id: "R13",
+    provision: "Art. 9(2)",
     category: "Retail",
     requirement: "Shelf life / expiry information",
     metadataField: "shelfLife",
     description: "Updated via updateRetailData when product reaches retail",
   },
-  // Access Control
+  // Access Control (Art. 9(2)(f))
   {
-    id: "8.3",
+    id: "R14",
+    provision: "Art. 9(2)(f)",
     category: "Access Control",
     requirement: "Role-based access to DPP data",
     metadataField: "—",
@@ -154,31 +170,34 @@ const ESPR_REQUIREMENTS: ESPRRequirement[] = [
     description:
       "7 roles enforced on-chain: FARMER, PROCESSOR, TRANSPORTER, RETAILER, GATEWAY, OWNER, ADMIN",
   },
-  // Immutability & Audit
+  // Data Integrity (Art. 11(g))
   {
-    id: "8.4",
-    category: "Audit & Immutability",
-    requirement: "Immutable audit trail",
+    id: "R15",
+    provision: "Art. 11(g)",
+    category: "Data Integrity",
+    requirement: "Data authentication, reliability, and integrity",
     metadataField: "—",
     contractField: "_history[] + blockchain immutability",
     description:
       "All events stored as JSON on-chain with actor and timestamp, tamper-proof by blockchain consensus",
   },
-  // Interoperability
+  // Interoperability (Art. 11(a))
   {
-    id: "8.5",
+    id: "R16",
+    provision: "Art. 11(a)",
     category: "Interoperability",
-    requirement: "Cross-system / cross-chain data portability",
+    requirement: "Cross-system interoperability",
     metadataField: "—",
     contractField: "SATP lock/mint/assign/burn + restoreCrossChainData",
     description:
       "Full SATP Hermes integration for cross-chain DPP transfers with zero data loss",
   },
-  // Decentralized Storage
+  // Data Availability (Art. 11(c,e))
   {
-    id: "8.6",
+    id: "R17",
+    provision: "Art. 11(c,e)",
     category: "Data Availability",
-    requirement: "Decentralized data availability",
+    requirement: "Data storage and availability",
     metadataField: "image (ipfs://CID), metadataCid (ipfs://CID)",
     description:
       "Product image and full metadata JSON pinned to IPFS via Pinata at mint time",
@@ -186,7 +205,7 @@ const ESPR_REQUIREMENTS: ESPRRequirement[] = [
 ];
 
 async function main() {
-  section("5.5 — ESPR Compliance Mapping");
+  section("ESPR Compliance Mapping (Regulation 2024/1781)");
 
   const env = await deploy();
   const { contract, farmer } = env;
@@ -255,10 +274,11 @@ async function main() {
   info(`Certifications: ${certs.length}`);
 
   // Validate each ESPR requirement
-  section("ESPR Article 8 Requirements Matrix");
+  section("ESPR Requirements Validation");
 
   const validationResults: {
     id: string;
+    provision: string;
     category: string;
     requirement: string;
     satisfied: boolean;
@@ -270,79 +290,79 @@ async function main() {
     let evidence = "";
 
     switch (req.id) {
-      case "8.2.a":
+      case "R01":
         satisfied = !!data.productId && data.productId.startsWith("PROD-");
         evidence = data.productId;
         break;
-      case "8.2.b":
+      case "R02":
         satisfied = !!data.productName && !!parsedMeta.description;
         evidence = `name="${data.productName}", desc="${parsedMeta.description?.substring(0, 40)}..."`;
         break;
-      case "8.2.c":
+      case "R03":
         satisfied = !!parsedMeta.manufacturer;
         evidence = parsedMeta.manufacturer;
         break;
-      case "8.2.d":
+      case "R04":
         satisfied = !!parsedMeta.origin;
         evidence = parsedMeta.origin;
         break;
-      case "8.2.e":
+      case "R05":
         satisfied = !!parsedMeta.productionMethod;
         evidence = parsedMeta.productionMethod;
         break;
-      case "8.2.f":
+      case "R06":
         satisfied = history.length > 0;
         evidence = `${history.length} event(s) on-chain`;
         break;
-      case "8.2.g":
+      case "R07":
         satisfied = !!parsedMeta.variety && !!parsedMeta.calibre;
         evidence = `variety="${parsedMeta.variety}", calibre="${parsedMeta.calibre}"`;
         break;
-      case "8.2.h":
+      case "R08":
         satisfied = certs.length > 0 || parsedMeta.certifications?.length > 0;
         evidence = `${certs.length} on-chain + ${parsedMeta.certifications?.length || 0} in metadata`;
         break;
-      case "8.2.i":
+      case "R09":
         satisfied =
           Array.isArray(parsedMeta.circular_economy?.packaging) &&
           parsedMeta.circular_economy.packaging.length > 0;
         evidence = `${parsedMeta.circular_economy?.packaging?.length || 0} packaging component(s)`;
         break;
-      case "8.2.j":
+      case "R10":
         satisfied = !!parsedMeta.circular_economy?.instructions;
         evidence =
           parsedMeta.circular_economy?.instructions?.substring(0, 50) + "...";
         break;
-      case "8.2.k":
+      case "R11":
         satisfied = !!parsedMeta.circular_economy?.return_scheme;
         evidence =
           parsedMeta.circular_economy?.return_scheme?.substring(0, 50) + "...";
         break;
-      case "8.2.l":
+      case "R12":
         satisfied = !!parsedMeta.logistics?.storage_temp;
         evidence = `storage_temp="${parsedMeta.logistics?.storage_temp}"`;
         break;
-      case "8.2.m":
+      case "R13":
         // shelfLife is set later by retailer — validate the field CAN exist
         satisfied = true;
         evidence = "Field available via updateRetailData (set at retail stage)";
         break;
-      case "8.3":
+      case "R14":
         // Access control — validated in security analysis
         satisfied = true;
         evidence =
           "OpenZeppelin AccessControl with 7 roles (validated in 03-security-analysis)";
         break;
-      case "8.4":
+      case "R15":
         satisfied = history.length > 0;
         evidence = `${history.length} immutable event(s), blockchain consensus`;
         break;
-      case "8.5":
+      case "R16":
         satisfied = true;
         evidence =
-          "SATP lock/mint/assign/burn + restoreCrossChainData (validated in 02-cross-chain)";
+          "SATP lock/mint/assign/burn + restoreCrossChainData (validated in cross-chain demo)";
         break;
-      case "8.6":
+      case "R17":
         satisfied =
           !!parsedMeta.image && parsedMeta.image.startsWith("ipfs://");
         evidence = `image=${parsedMeta.image}, metadataCid=${parsedMeta.metadataCid || "N/A"}`;
@@ -351,14 +371,15 @@ async function main() {
 
     validationResults.push({
       id: req.id,
+      provision: req.provision,
       category: req.category,
       requirement: req.requirement,
       satisfied,
       evidence,
     });
 
-    if (satisfied) pass(`[${req.id}] ${req.requirement}`);
-    else fail(`[${req.id}] ${req.requirement}`);
+    if (satisfied) pass(`[${req.id}] ${req.provision}: ${req.requirement}`);
+    else fail(`[${req.id}] ${req.provision}: ${req.requirement}`);
   }
 
   // Summary table
@@ -366,9 +387,10 @@ async function main() {
 
   table(
     validationResults.map((r) => ({
-      "Art.": r.id,
+      ID: r.id,
+      Provision: r.provision,
       Category: r.category,
-      Requirement: r.requirement.substring(0, 45),
+      Requirement: r.requirement.substring(0, 40),
       Status: r.satisfied ? "PASS" : "FAIL",
       Evidence: r.evidence.substring(0, 50),
     })),
@@ -381,7 +403,7 @@ async function main() {
 
   writeResults("05-espr-compliance", {
     timestamp: new Date().toISOString(),
-    regulation: "EU ESPR (Regulation 2024/1781)",
+    regulation: "EU ESPR (Regulation 2024/1781, Articles 9-11, Annex III)",
     requirements: ESPR_REQUIREMENTS,
     validation: validationResults,
     summary: {

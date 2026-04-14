@@ -17,24 +17,20 @@ import {
   LogLevelDesc,
 } from "@hyperledger/cactus-common";
 
-import { CreateDppEndpoint } from "./web-services/create-dpp-endpoint";
-import { TransferDppEndpoint } from "./web-services/transfer-dpp-endpoint";
-import { AggregateDppEndpoint } from "./web-services/aggregate-dpp-endpoint";
-import { UpdateTransportEndpoint } from "./web-services/update-transport-endpoint";
-import { GetDppByIdEndpoint } from "./web-services/get-dpp-by-id-endpoint";
-import { GetDppHistoryEndpoint } from "./web-services/get-dpp-history-endpoint";
-import { AddFeedbackEndpoint } from "./web-services/add-feedback-endpoint";
-import {
-  UpdateTransportDataRequest,
-  TransferDPPRequest,
-} from "./generated/openapi/typescript-axios";
-
 export interface IPluginDppOptions extends ICactusPluginOptions {
   instanceId: string;
   pluginRegistry: PluginRegistry;
   logLevel?: LogLevelDesc;
 }
 
+/**
+ * Hyperledger Cacti plugin for Digital Product Passport (DPP) management.
+ *
+ * The functional REST API is implemented in `scripts/launch-api.ts`, which
+ * builds an Express server backed by {@link EVMDPPLeaf}.  This plugin class
+ * provides the Cacti lifecycle hooks (init, shutdown, OpenAPI spec) so that
+ * the DPP module integrates with the Cacti API server and plugin registry.
+ */
 export class PluginDpp implements ICactusPlugin, IPluginWebService {
   private readonly instanceId: string;
   private readonly log: Logger;
@@ -84,33 +80,10 @@ export class PluginDpp implements ICactusPlugin, IPluginWebService {
     if (Array.isArray(this.endpoints)) {
       return this.endpoints;
     }
-    const endpoints: IWebServiceEndpoint[] = [];
-    {
-      const logLevel = this.options.logLevel;
-      endpoints.push(new CreateDppEndpoint({ connector: this, logLevel }));
-      endpoints.push(new TransferDppEndpoint({ connector: this, logLevel }));
-      endpoints.push(new AggregateDppEndpoint({ connector: this, logLevel }));
-      endpoints.push(
-        new UpdateTransportEndpoint({ connector: this, logLevel }),
-      );
-      endpoints.push(new GetDppByIdEndpoint({ connector: this, logLevel }));
-      endpoints.push(new GetDppHistoryEndpoint({ connector: this, logLevel }));
-      endpoints.push(new AddFeedbackEndpoint({ connector: this, logLevel }));
-    }
-    this.endpoints = endpoints;
-    return endpoints;
-  }
-
-  public async updateTransport(req: UpdateTransportDataRequest): Promise<void> {
-    const fnTag = `${this.className}#updateTransport()`;
-    this.log.debug(`${fnTag}`, req);
-    // TODO: Implement business logic here
-  }
-
-  public async transfer(req: TransferDPPRequest): Promise<void> {
-    const fnTag = `${this.className}#transfer()`;
-    this.log.debug(`${fnTag}`, req);
-    // TODO: Implement business logic here
+    // Endpoint registration is handled by the Express server in
+    // scripts/launch-api.ts, which wires routes directly to EVMDPPLeaf.
+    this.endpoints = [];
+    return this.endpoints;
   }
 
   public getPackageName(): string {
@@ -118,5 +91,5 @@ export class PluginDpp implements ICactusPlugin, IPluginWebService {
   }
 }
 
-// Alias for endpoints that import PluginDPP (uppercase)
+// Alias for code that imports PluginDPP (uppercase)
 export { PluginDpp as PluginDPP };

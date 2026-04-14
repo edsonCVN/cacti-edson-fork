@@ -1,9 +1,10 @@
 {
-  "timestamp": "2026-03-25T16:40:42.505Z",
-  "regulation": "EU ESPR (Regulation 2024/1781)",
+  "timestamp": "2026-04-14T12:08:44.862Z",
+  "regulation": "EU ESPR (Regulation 2024/1781, Articles 9-11, Annex III)",
   "requirements": [
     {
-      "id": "8.2.a",
+      "id": "R01",
+      "provision": "Annex III(a-c)",
       "category": "Product Identification",
       "requirement": "Unique product identifier",
       "metadataField": "—",
@@ -11,7 +12,8 @@
       "description": "Auto-generated on-chain as PROD-{tokenId} or LOT-{tokenId}"
     },
     {
-      "id": "8.2.b",
+      "id": "R02",
+      "provision": "Annex III(a)",
       "category": "Product Identification",
       "requirement": "Product name and description",
       "metadataField": "name, description",
@@ -19,72 +21,82 @@
       "description": "Stored both on-chain (productName) and in metadata JSON"
     },
     {
-      "id": "8.2.c",
+      "id": "R03",
+      "provision": "Annex III(g)",
       "category": "Manufacturer",
       "requirement": "Manufacturer/producer identity",
       "metadataField": "manufacturer",
       "description": "Producer name stored in metadata (e.g., 'Quinta da Gardunha')"
     },
     {
-      "id": "8.2.d",
-      "category": "Origin & Traceability",
+      "id": "R04",
+      "provision": "Art. 9(3)",
+      "category": "Traceability",
       "requirement": "Geographic origin of the product",
       "metadataField": "origin",
       "description": "Production origin (e.g., 'Fundão, Portugal')"
     },
     {
-      "id": "8.2.e",
-      "category": "Origin & Traceability",
+      "id": "R05",
+      "provision": "Art. 9(3)",
+      "category": "Traceability",
       "requirement": "Production method",
       "metadataField": "productionMethod",
       "description": "Agricultural/industrial method (e.g., 'Produção Integrada')"
     },
     {
-      "id": "8.2.f",
-      "category": "Origin & Traceability",
+      "id": "R06",
+      "provision": "Art. 9(3)",
+      "category": "Traceability",
       "requirement": "Supply chain traceability / chain of custody",
       "metadataField": "—",
       "contractField": "_history[] (on-chain JSON events)",
       "description": "Every lifecycle event recorded with actor address and timestamp"
     },
     {
-      "id": "8.2.g",
-      "category": "Materials & Composition",
+      "id": "R07",
+      "provision": "Annex III(a)",
+      "category": "Composition",
       "requirement": "Product composition / variety",
       "metadataField": "variety, calibre, brixDegree",
       "description": "Product-specific attributes (variety, size, sugar content)"
     },
     {
-      "id": "8.2.h",
+      "id": "R08",
+      "provision": "Annex III(e)",
       "category": "Certifications",
-      "requirement": "Certifications and compliance marks",
+      "requirement": "Compliance documentation",
       "metadataField": "certifications[]",
       "contractField": "_certifications[] (on-chain array)",
       "description": "IGP, GlobalG.A.P., ISO certifications stored on-chain"
     },
     {
-      "id": "8.2.i",
+      "id": "R09",
+      "provision": "Art. 9(2)",
       "category": "Circular Economy",
       "requirement": "Packaging materials and recyclability",
       "metadataField": "circular_economy.packaging[]",
       "description": "Material, recyclability %, disposal instructions per packaging component"
     },
     {
-      "id": "8.2.j",
+      "id": "R10",
+      "provision": "Annex III(f)",
       "category": "Circular Economy",
-      "requirement": "End-of-life disposal instructions",
+      "requirement": "Disposal instructions",
       "metadataField": "circular_economy.instructions",
       "description": "User-facing recycling instructions"
     },
     {
-      "id": "8.2.k",
+      "id": "R11",
+      "provision": "Art. 9(2)",
       "category": "Circular Economy",
       "requirement": "Return/reuse schemes",
       "metadataField": "circular_economy.return_scheme",
       "description": "Incentive programs for packaging return"
     },
     {
-      "id": "8.2.l",
+      "id": "R12",
+      "provision": "Art. 9(2)",
       "category": "Logistics",
       "requirement": "Storage and transport conditions",
       "metadataField": "logistics.storage_temp",
@@ -92,14 +104,16 @@
       "description": "Temperature, humidity, and condition data recorded per shipment"
     },
     {
-      "id": "8.2.m",
+      "id": "R13",
+      "provision": "Art. 9(2)",
       "category": "Retail",
       "requirement": "Shelf life / expiry information",
       "metadataField": "shelfLife",
       "description": "Updated via updateRetailData when product reaches retail"
     },
     {
-      "id": "8.3",
+      "id": "R14",
+      "provision": "Art. 9(2)(f)",
       "category": "Access Control",
       "requirement": "Role-based access to DPP data",
       "metadataField": "—",
@@ -107,146 +121,166 @@
       "description": "7 roles enforced on-chain: FARMER, PROCESSOR, TRANSPORTER, RETAILER, GATEWAY, OWNER, ADMIN"
     },
     {
-      "id": "8.4",
-      "category": "Audit & Immutability",
-      "requirement": "Immutable audit trail",
+      "id": "R15",
+      "provision": "Art. 11(g)",
+      "category": "Data Integrity",
+      "requirement": "Data authentication, reliability, and integrity",
       "metadataField": "—",
       "contractField": "_history[] + blockchain immutability",
       "description": "All events stored as JSON on-chain with actor and timestamp, tamper-proof by blockchain consensus"
     },
     {
-      "id": "8.5",
+      "id": "R16",
+      "provision": "Art. 11(a)",
       "category": "Interoperability",
-      "requirement": "Cross-system / cross-chain data portability",
+      "requirement": "Cross-system interoperability",
       "metadataField": "—",
       "contractField": "SATP lock/mint/assign/burn + restoreCrossChainData",
       "description": "Full SATP Hermes integration for cross-chain DPP transfers with zero data loss"
     },
     {
-      "id": "8.6",
+      "id": "R17",
+      "provision": "Art. 11(c,e)",
       "category": "Data Availability",
-      "requirement": "Decentralized data availability",
+      "requirement": "Data storage and availability",
       "metadataField": "image (ipfs://CID), metadataCid (ipfs://CID)",
       "description": "Product image and full metadata JSON pinned to IPFS via Pinata at mint time"
     }
   ],
   "validation": [
     {
-      "id": "8.2.a",
+      "id": "R01",
+      "provision": "Annex III(a-c)",
       "category": "Product Identification",
       "requirement": "Unique product identifier",
       "satisfied": true,
       "evidence": "PROD-0"
     },
     {
-      "id": "8.2.b",
+      "id": "R02",
+      "provision": "Annex III(a)",
       "category": "Product Identification",
       "requirement": "Product name and description",
       "satisfied": true,
       "evidence": "name=\"Cereja do Fundão IGP — Lote Teste\", desc=\"Caixa de 2kg de cerejas Burlat, colhidas...\""
     },
     {
-      "id": "8.2.c",
+      "id": "R03",
+      "provision": "Annex III(g)",
       "category": "Manufacturer",
       "requirement": "Manufacturer/producer identity",
       "satisfied": true,
       "evidence": "Quinta da Gardunha"
     },
     {
-      "id": "8.2.d",
-      "category": "Origin & Traceability",
+      "id": "R04",
+      "provision": "Art. 9(3)",
+      "category": "Traceability",
       "requirement": "Geographic origin of the product",
       "satisfied": true,
       "evidence": "Fundão, Portugal"
     },
     {
-      "id": "8.2.e",
-      "category": "Origin & Traceability",
+      "id": "R05",
+      "provision": "Art. 9(3)",
+      "category": "Traceability",
       "requirement": "Production method",
       "satisfied": true,
       "evidence": "Produção Integrada"
     },
     {
-      "id": "8.2.f",
-      "category": "Origin & Traceability",
+      "id": "R06",
+      "provision": "Art. 9(3)",
+      "category": "Traceability",
       "requirement": "Supply chain traceability / chain of custody",
       "satisfied": true,
       "evidence": "1 event(s) on-chain"
     },
     {
-      "id": "8.2.g",
-      "category": "Materials & Composition",
+      "id": "R07",
+      "provision": "Annex III(a)",
+      "category": "Composition",
       "requirement": "Product composition / variety",
       "satisfied": true,
       "evidence": "variety=\"Burlat\", calibre=\"26-28mm\""
     },
     {
-      "id": "8.2.h",
+      "id": "R08",
+      "provision": "Annex III(e)",
       "category": "Certifications",
-      "requirement": "Certifications and compliance marks",
+      "requirement": "Compliance documentation",
       "satisfied": true,
       "evidence": "0 on-chain + 2 in metadata"
     },
     {
-      "id": "8.2.i",
+      "id": "R09",
+      "provision": "Art. 9(2)",
       "category": "Circular Economy",
       "requirement": "Packaging materials and recyclability",
       "satisfied": true,
       "evidence": "2 packaging component(s)"
     },
     {
-      "id": "8.2.j",
+      "id": "R10",
+      "provision": "Annex III(f)",
       "category": "Circular Economy",
-      "requirement": "End-of-life disposal instructions",
+      "requirement": "Disposal instructions",
       "satisfied": true,
       "evidence": "Flatten the cardboard box to save space. Separate ..."
     },
     {
-      "id": "8.2.k",
+      "id": "R11",
+      "provision": "Art. 9(2)",
       "category": "Circular Economy",
       "requirement": "Return/reuse schemes",
       "satisfied": true,
       "evidence": "Return intact wooden baskets to participating Cerf..."
     },
     {
-      "id": "8.2.l",
+      "id": "R12",
+      "provision": "Art. 9(2)",
       "category": "Logistics",
       "requirement": "Storage and transport conditions",
       "satisfied": true,
       "evidence": "storage_temp=\"2°C - 4°C\""
     },
     {
-      "id": "8.2.m",
+      "id": "R13",
+      "provision": "Art. 9(2)",
       "category": "Retail",
       "requirement": "Shelf life / expiry information",
       "satisfied": true,
       "evidence": "Field available via updateRetailData (set at retail stage)"
     },
     {
-      "id": "8.3",
+      "id": "R14",
+      "provision": "Art. 9(2)(f)",
       "category": "Access Control",
       "requirement": "Role-based access to DPP data",
       "satisfied": true,
       "evidence": "OpenZeppelin AccessControl with 7 roles (validated in 03-security-analysis)"
     },
     {
-      "id": "8.4",
-      "category": "Audit & Immutability",
-      "requirement": "Immutable audit trail",
+      "id": "R15",
+      "provision": "Art. 11(g)",
+      "category": "Data Integrity",
+      "requirement": "Data authentication, reliability, and integrity",
       "satisfied": true,
       "evidence": "1 immutable event(s), blockchain consensus"
     },
     {
-      "id": "8.5",
+      "id": "R16",
+      "provision": "Art. 11(a)",
       "category": "Interoperability",
-      "requirement": "Cross-system / cross-chain data portability",
+      "requirement": "Cross-system interoperability",
       "satisfied": true,
-      "evidence": "SATP lock/mint/assign/burn + restoreCrossChainData (validated in 02-cross-chain)"
+      "evidence": "SATP lock/mint/assign/burn + restoreCrossChainData (validated in cross-chain demo)"
     },
     {
-      "id": "8.6",
+      "id": "R17",
+      "provision": "Art. 11(c,e)",
       "category": "Data Availability",
-      "requirement": "Decentralized data availability",
+      "requirement": "Data storage and availability",
       "satisfied": true,
       "evidence": "image=ipfs://QmTestImageCid, metadataCid=ipfs://QmTestMetadataCid"
     }

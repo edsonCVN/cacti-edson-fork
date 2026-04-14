@@ -18,6 +18,8 @@ export default {
     hardhat2: {
       type: "http",
       url: "http://0.0.0.0:8546",
+      // Hardhat/Anvil default test accounts — NOT for production use.
+      // These are publicly known deterministic keys shipped with Hardhat.
       accounts: [
         "0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a",
         "0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba",
