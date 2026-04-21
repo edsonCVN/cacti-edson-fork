@@ -1,5 +1,5 @@
 /**
- * 01-gas-profiling.ts — Gas Cost Analysis
+ * 01-gas-profiling.ts - Gas Cost Analysis
  *
  * Profiles gas consumption for every DPP lifecycle operation.
  * Produces a summary table and JSON results file.
@@ -53,7 +53,7 @@ function estimateCost(gasUsed: number) {
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 async function main() {
-  section("5.1 — Gas Cost Analysis");
+  section("5.1 - Gas Cost Analysis");
   const env = await deploy();
   const { contract, farmer, processor, transporter, retailer, leafFor } = env;
 
@@ -248,7 +248,7 @@ async function main() {
     contract.connect(farmer).revokeDPP(revokeTokenId, "Quality issue"),
   );
 
-  // ── 11. restoreCrossChainData ─────────────────────────────────────────────
+  // ── 11. importCrossChainData ─────────────────────────────────────────────
 
   // Simulate: mint a token as bridge, then restore
   const bridgeSigner = env.bridge;
@@ -269,8 +269,8 @@ async function main() {
     JSON.stringify({ certId: "GlobalG.A.P." }),
   ];
   await record(
-    "restoreCrossChainData (2 history + 2 certs)",
-    contract.restoreCrossChainData(
+    "importCrossChainData (2 history + 2 certs)",
+    contract.importCrossChainData(
       9999,
       "Restored DPP",
       "2025-06-15",
@@ -282,7 +282,7 @@ async function main() {
 
   // ── 12. SATP bridge operations ────────────────────────────────────────────
 
-  // Create fresh DPP for SATP test — get token ID dynamically
+  // Create fresh DPP for SATP test - get token ID dynamically
   const satpTokenId = (
     await contract
       .connect(farmer)
@@ -316,7 +316,7 @@ async function main() {
 
   const crossChainTimings: { phase: string; durationMs: number }[] = [];
   if (await isCrossChainAvailable()) {
-    section("Cross-Chain Transfer (E2E via SATP — optional)");
+    section("Cross-Chain Transfer (E2E via SATP - optional)");
 
     // Create a DPP via the chain 1 API
     info("Creating DPP via chain 1 API...");
@@ -348,11 +348,11 @@ async function main() {
         createApiRes.dppId,
       );
       crossChainTimings.push({
-        phase: "SATP E2E transfer (lock→mint→assign→burn→restore)",
+        phase: "SATP E2E transfer (lock->mint->assign->burn->restore)",
         durationMs,
       });
       pass(
-        `SATP transfer complete — session: ${sessionId}, duration: ${(durationMs / 1000).toFixed(1)}s`,
+        `SATP transfer complete - session: ${sessionId}, duration: ${(durationMs / 1000).toFixed(1)}s`,
       );
 
       // Verify DPP exists on chain 2
@@ -380,7 +380,7 @@ async function main() {
       })),
     );
   } else {
-    info("\n[Skipped] Cross-chain gas profiling — SATP services not available");
+    info("\n[Skipped] Cross-chain gas profiling - SATP services not available");
     info(
       "Start both API gateways + SATP Hermes for cross-chain measurements\n",
     );
@@ -414,7 +414,7 @@ async function main() {
     crossChainTimings:
       crossChainTimings.length > 0
         ? crossChainTimings
-        : "SATP not available — skipped",
+        : "SATP not available - skipped",
   });
 
   pass("Gas profiling complete!");

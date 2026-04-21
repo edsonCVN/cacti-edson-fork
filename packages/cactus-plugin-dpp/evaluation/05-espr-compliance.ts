@@ -1,5 +1,5 @@
 /**
- * 05-espr-compliance.ts — ESPR Compliance Mapping
+ * 05-espr-compliance.ts - ESPR Compliance Mapping
  *
  * Validates that the DPP implementation satisfies EU Ecodesign for Sustainable
  * Products Regulation (ESPR) information requirements.
@@ -24,7 +24,7 @@ import {
   writeResults,
 } from "./shared";
 
-// ─── ESPR Requirements — Articles 9-11 and Annex III ───────────────────────
+// ─── ESPR Requirements - Articles 9-11 and Annex III ───────────────────────
 // Reference: EU Regulation 2024/1781 (ESPR)
 
 interface ESPRRequirement {
@@ -44,7 +44,7 @@ const ESPR_REQUIREMENTS: ESPRRequirement[] = [
     provision: "Annex III(a-c)",
     category: "Product Identification",
     requirement: "Unique product identifier",
-    metadataField: "—",
+    metadataField: "-",
     contractField: "productId (auto: PROD-{tokenId})",
     description: "Auto-generated on-chain as PROD-{tokenId} or LOT-{tokenId}",
   },
@@ -89,7 +89,7 @@ const ESPR_REQUIREMENTS: ESPRRequirement[] = [
     provision: "Art. 9(3)",
     category: "Traceability",
     requirement: "Supply chain traceability / chain of custody",
-    metadataField: "—",
+    metadataField: "-",
     contractField: "_history[] (on-chain JSON events)",
     description:
       "Every lifecycle event recorded with actor address and timestamp",
@@ -165,10 +165,10 @@ const ESPR_REQUIREMENTS: ESPRRequirement[] = [
     provision: "Art. 9(2)(f)",
     category: "Access Control",
     requirement: "Role-based access to DPP data",
-    metadataField: "—",
+    metadataField: "-",
     contractField: "AccessControl (OpenZeppelin)",
     description:
-      "7 roles enforced on-chain: FARMER, PROCESSOR, TRANSPORTER, RETAILER, GATEWAY, OWNER, ADMIN",
+      "8 roles enforced on-chain: FARMER, PROCESSOR, TRANSPORTER, RETAILER, GATEWAY, BRIDGE, OWNER, DEFAULT_ADMIN",
   },
   // Data Integrity (Art. 11(g))
   {
@@ -176,7 +176,7 @@ const ESPR_REQUIREMENTS: ESPRRequirement[] = [
     provision: "Art. 11(g)",
     category: "Data Integrity",
     requirement: "Data authentication, reliability, and integrity",
-    metadataField: "—",
+    metadataField: "-",
     contractField: "_history[] + blockchain immutability",
     description:
       "All events stored as JSON on-chain with actor and timestamp, tamper-proof by blockchain consensus",
@@ -187,8 +187,8 @@ const ESPR_REQUIREMENTS: ESPRRequirement[] = [
     provision: "Art. 11(a)",
     category: "Interoperability",
     requirement: "Cross-system interoperability",
-    metadataField: "—",
-    contractField: "SATP lock/mint/assign/burn + restoreCrossChainData",
+    metadataField: "-",
+    contractField: "SATP lock/mint/assign/burn + importCrossChainData",
     description:
       "Full SATP Hermes integration for cross-chain DPP transfers with zero data loss",
   },
@@ -213,7 +213,7 @@ async function main() {
 
   // Create a fully-populated DPP to validate against
   const metadata = JSON.stringify({
-    name: "Cereja do Fundão IGP — Lote Teste",
+    name: "Cereja do Fundão IGP - Lote Teste",
     description: "Caixa de 2kg de cerejas Burlat, colhidas à mão.",
     image: "ipfs://QmTestImageCid",
     origin: "Fundão, Portugal",
@@ -254,7 +254,7 @@ async function main() {
       .connect(farmer)
       .createDPP(
         farmerAddr,
-        "Cereja do Fundão IGP — Lote Teste",
+        "Cereja do Fundão IGP - Lote Teste",
         "2025-06-15",
         metadata,
       )
@@ -343,15 +343,15 @@ async function main() {
         evidence = `storage_temp="${parsedMeta.logistics?.storage_temp}"`;
         break;
       case "R13":
-        // shelfLife is set later by retailer — validate the field CAN exist
+        // shelfLife is set later by retailer - validate the field CAN exist
         satisfied = true;
         evidence = "Field available via updateRetailData (set at retail stage)";
         break;
       case "R14":
-        // Access control — validated in security analysis
+        // Access control - validated in security analysis
         satisfied = true;
         evidence =
-          "OpenZeppelin AccessControl with 7 roles (validated in 03-security-analysis)";
+          "OpenZeppelin AccessControl with 8 roles (validated in 03-security-analysis)";
         break;
       case "R15":
         satisfied = history.length > 0;
@@ -360,7 +360,7 @@ async function main() {
       case "R16":
         satisfied = true;
         evidence =
-          "SATP lock/mint/assign/burn + restoreCrossChainData (validated in cross-chain demo)";
+          "SATP lock/mint/assign/burn + importCrossChainData (validated in cross-chain demo)";
         break;
       case "R17":
         satisfied =
@@ -416,7 +416,7 @@ async function main() {
   if (satisfied === total) pass("Full ESPR compliance achieved!");
   else
     info(
-      `${total - satisfied} requirement(s) partially satisfied — see details above`,
+      `${total - satisfied} requirement(s) partially satisfied - see details above`,
     );
 }
 

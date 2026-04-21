@@ -54,6 +54,11 @@ contract DigitalProductPassport is
   /// @dev JSON-encoded history log per token (queryable without an indexer).
   mapping(uint256 => string[]) private _history;
 
+  // Pre-lock state saved by lock() so that unlock() can restore the exact
+  // state the DPP was in before the cross-chain transfer was initiated,
+  // rather than unconditionally defaulting to CREATED.
+  mapping(uint256 => DPPState) private _preLockState;
+
   // ============================================================
   //  Constructor
   // ============================================================
@@ -139,7 +144,7 @@ contract DigitalProductPassport is
   /**
    * @notice Mints a new DPP token and assigns it to `to`.
    * @dev Only callable by addresses with FARMER_ROLE. Follows the
-   *      Checks-Effects-Interactions pattern — `_safeMint` is called last
+   *      Checks-Effects-Interactions pattern - `_safeMint` is called last
    *      to prevent reentrancy via `onERC721Received`.
    * @param to           The address that will own the newly minted token.
    * @param productName  Human-readable product name stored on-chain.
@@ -242,7 +247,7 @@ contract DigitalProductPassport is
   }
 
   /**
-   * @notice Marks a DPP as received by the retailer (state → RECEIVED).
+   * @notice Marks a DPP as received by the retailer (state -> RECEIVED).
    * @dev Only callable by addresses with RETAILER_ROLE.
    * @param tokenId The DPP token to mark as received.
    */
@@ -341,7 +346,7 @@ contract DigitalProductPassport is
    *         original's metadata. The original is revoked (read-only).
    * @dev Only callable by DEFAULT_ADMIN_ROLE, FARMER_ROLE, or PROCESSOR_ROLE.
    *      Each new token stores a lightweight "split-from:<originId>" reference
-   *      instead of duplicating the full metadata — the backend resolves the
+   *      instead of duplicating the full metadata - the backend resolves the
    *      origin's data, certifications, and history transparently.
    * @param tokenId     The DPP token to disaggregate.
    * @param to          Address that will own all newly created tokens.
@@ -365,7 +370,7 @@ contract DigitalProductPassport is
     DPPData storage origin = _dppData[tokenId];
 
     // Build a lightweight metadata reference instead of duplicating the
-    // full JSON blob for every child — the backend resolves the original
+    // full JSON blob for every child - the backend resolves the original
     // metadata via the origin token ID embedded in the reference string.
     string memory metadataRef = string(
       abi.encodePacked("split-from:", Strings.toString(tokenId))
@@ -433,20 +438,28 @@ contract DigitalProductPassport is
   }
 
   /**
-   * @notice Restores full DPP data on the destination chain after a SATP
-   *         cross-chain transfer.  The SATP `mint()` creates only a
-   *         placeholder — this function fills in the real product name,
+   * @notice Imports full DPP data on the destination chain after a SATP
+   *         cross-chain transfer. The SATP `mint()` creates only an empty
+   *         token shell - this function populates the real product name,
    *         creation date, metadata URI, certifications, and source-chain
-   *         history so the DPP is fully equivalent to the original.
+   *         history, turning the shell into a fully functional DPP.
+   *         The lifecycle state is assigned based on the recipient's role:
+   *           FARMER_ROLE     -> CREATED
+   *           PROCESSOR_ROLE  -> CREATED
+   *           TRANSPORTER_ROLE-> IN_TRANSIT
+   *           RETAILER_ROLE   -> RECEIVED
+   *           (fallback)      -> CREATED
+   *         When the recipient holds multiple roles, the first match in the
+   *         above order is used.
    * @dev Only callable by DEFAULT_ADMIN_ROLE or GATEWAY_ROLE.
-   * @param tokenId       The DPP token to restore.
+   * @param tokenId       The DPP token to populate.
    * @param productName   Original product name from the source chain.
    * @param creationDate  Original ISO-8601 creation date.
    * @param metadataURI   Original additionalMetadataURI (JSON blob or IPFS CID).
    * @param certs         Array of certification strings to import.
    * @param historyEntries Array of raw JSON history entries from the source chain.
    */
-  function restoreCrossChainData(
+  function importCrossChainData(
     uint256 tokenId,
     string memory productName,
     string memory creationDate,
@@ -457,14 +470,28 @@ contract DigitalProductPassport is
     require(_ownerOf(tokenId) != address(0), "ERC721: invalid token ID");
     require(
       hasRole(DEFAULT_ADMIN_ROLE, msg.sender) || hasRole(GATEWAY_ROLE, msg.sender),
-      "Caller lacks restore permission"
+      "Caller lacks import permission"
     );
 
     _dppData[tokenId].productName = productName;
     _dppData[tokenId].creationDate = creationDate;
     _dppData[tokenId].additionalMetadataURI = metadataURI;
 
-    // Clear certifications added by previous restores to avoid duplicates
+    // Derive the lifecycle state from the recipient's role (first match wins)
+    address recipient = _ownerOf(tokenId);
+    if (hasRole(FARMER_ROLE, recipient)) {
+      _dppData[tokenId].state = DPPState.CREATED;
+    } else if (hasRole(PROCESSOR_ROLE, recipient)) {
+      _dppData[tokenId].state = DPPState.CREATED;
+    } else if (hasRole(TRANSPORTER_ROLE, recipient)) {
+      _dppData[tokenId].state = DPPState.IN_TRANSIT;
+    } else if (hasRole(RETAILER_ROLE, recipient)) {
+      _dppData[tokenId].state = DPPState.RECEIVED;
+    } else {
+      _dppData[tokenId].state = DPPState.CREATED;
+    }
+
+    // Clear certifications added by previous imports to avoid duplicates
     delete _certifications[tokenId];
     for (uint i = 0; i < certs.length; i++) {
       _certifications[tokenId].push(certs[i]);
@@ -478,8 +505,8 @@ contract DigitalProductPassport is
       _history[tokenId].push(historyEntries[i]);
     }
 
-    // Record the cross-chain restore event itself
-    _addToHistory(tokenId, "CrossChainRestore", msg.sender);
+    // Record the cross-chain import event itself
+    _addToHistory(tokenId, "CrossChainImport", msg.sender);
   }
 
   // ============================================================
@@ -554,7 +581,7 @@ contract DigitalProductPassport is
   }
 
   // ============================================================
-  //  SATP Hermes Gateway — Bridge-compatible functions
+  //  SATP Hermes Gateway - Bridge-compatible functions
   //  These follow the exact signatures expected by the SATPWrapper
   //  bridge contract deployed by the SATP Hermes gateway.
   // ============================================================
@@ -574,6 +601,8 @@ contract DigitalProductPassport is
     uint256 uniqueDescriptor
   ) external returns (bool) {
     require(_dppData[uniqueDescriptor].state != DPPState.REVOKED, "DPP is revoked");
+    // Save the current state so unlock() can restore it if the transfer is rolled back.
+    _preLockState[uniqueDescriptor] = _dppData[uniqueDescriptor].state;
     _dppData[uniqueDescriptor].state = DPPState.LOCKED_CROSSCHAIN;
     _addToHistory(uniqueDescriptor, "SATPLock", msg.sender);
     emit SATPLocked(uniqueDescriptor, from, to);
@@ -583,8 +612,10 @@ contract DigitalProductPassport is
 
   /**
    * @notice Unlocks a previously locked DPP (rollback scenario).
-   * @dev Resets state to CREATED and transfers the token back from bridge
-   *      custody to the original owner.
+   * @dev Restores the state that was active before lock() was called and
+   *      transfers the token back from bridge custody to the original owner.
+   *      If no pre-lock state was saved (unexpected path), falls back to
+   *      CREATED to guarantee the DPP is left in a valid, non-locked state.
    * @param from             Bridge custody address currently holding the token.
    * @param to               Original owner to return the token to.
    * @param uniqueDescriptor The DPP token ID.
@@ -595,7 +626,14 @@ contract DigitalProductPassport is
     address to,
     uint256 uniqueDescriptor
   ) external returns (bool) {
-    _dppData[uniqueDescriptor].state = DPPState.CREATED;
+    DPPState restored = _preLockState[uniqueDescriptor];
+    // Guard against the (unexpected) case where unlock is called without a
+    // prior lock: treat missing or locked pre-state as a fresh DPP.
+    if (restored == DPPState.LOCKED_CROSSCHAIN) {
+      restored = DPPState.CREATED;
+    }
+    _dppData[uniqueDescriptor].state = restored;
+    delete _preLockState[uniqueDescriptor];
     _addToHistory(uniqueDescriptor, "SATPUnlock", msg.sender);
     emit SATPUnlocked(uniqueDescriptor, from, to);
     safeTransferFrom(from, to, uniqueDescriptor);

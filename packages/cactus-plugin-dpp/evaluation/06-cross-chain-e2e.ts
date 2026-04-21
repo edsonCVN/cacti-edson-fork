@@ -1,22 +1,22 @@
 /**
- * 06-cross-chain-e2e.ts — End-to-End SATP Cross-Chain Transfer Validation
+ * 06-cross-chain-e2e.ts - End-to-End SATP Cross-Chain Transfer Validation
  *
  * Tests the REAL cross-chain DPP transfer through the full stack:
- *   Chain 1 API → SATP Hermes Gateway 1 → SATP Protocol → Gateway 2 → Chain 2
- *   + background metadata sync (restoreCrossChainData)
+ *   Chain 1 API -> SATP Hermes Gateway 1 -> SATP Protocol -> Gateway 2 -> Chain 2
+ *   + background metadata sync (importCrossChainData)
  *
  * Validates:
  *   - DPP creation on chain 1
- *   - Full SATP transfer (lock → mint → assign → burn)
+ *   - Full SATP transfer (lock -> mint -> assign -> burn)
  *   - Metadata integrity on chain 2 (product name, creation date, metadata hash)
- *   - History preservation on chain 2 (source events + CrossChainRestore)
+ *   - History preservation on chain 2 (source events + CrossChainImport)
  *   - Image and metadataCid fields preserved
  *   - End-to-end latency measurement
  *
  * Research question: Does the full SATP pipeline preserve DPP integrity
  *                    across independent EVM networks?
  *
- * Prerequisites (Option B — Full SATP mode):
+ * Prerequisites (Option B - Full SATP mode):
  *   1. Two Hardhat/Anvil nodes: port 8545 (chain 1) + port 8546 (chain 2)
  *   2. Contracts deployed: node scripts/deploy-dpp.js
  *   3. SATP Hermes gateways: cd gateway && docker compose up
@@ -50,13 +50,13 @@ function sha256(data: string): string {
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 async function main() {
-  section("5.2+ — End-to-End SATP Cross-Chain Transfer");
+  section("5.2+ - End-to-End SATP Cross-Chain Transfer");
 
   const results: { name: string; passed: boolean; details?: string }[] = [];
   function record(name: string, passed: boolean, details?: string) {
     results.push({ name, passed, details });
-    if (passed) pass(name + (details ? ` — ${details}` : ""));
-    else fail(name + (details ? ` — ${details}` : ""));
+    if (passed) pass(name + (details ? ` - ${details}` : ""));
+    else fail(name + (details ? ` - ${details}` : ""));
   }
 
   const timings: { phase: string; durationMs: number }[] = [];
@@ -69,7 +69,7 @@ async function main() {
 
   try {
     const config1 = await apiGet(CHAIN1_API, "/config");
-    pass(`Chain 1 API reachable — contract: ${config1.contractAddress}`);
+    pass(`Chain 1 API reachable - contract: ${config1.contractAddress}`);
   } catch (e: any) {
     fail(`Chain 1 API NOT reachable at ${CHAIN1_API}: ${e.message}`);
     console.error("\nMake sure all services are running (see Prerequisites in the script header).\n");
@@ -78,7 +78,7 @@ async function main() {
 
   try {
     const config2 = await apiGet(CHAIN2_API, "/config");
-    pass(`Chain 2 API reachable — contract: ${config2.contractAddress}`);
+    pass(`Chain 2 API reachable - contract: ${config2.contractAddress}`);
   } catch (e: any) {
     fail(`Chain 2 API NOT reachable at ${CHAIN2_API}: ${e.message}`);
     console.error("\nStart the chain-2 API: npx ts-node --project tsconfig.hardhat.json scripts/launch-api-chain2.ts\n");
@@ -96,7 +96,7 @@ async function main() {
     owner: "0x70997970C51812dc3A010C7d01b50e0d17dc79C8", // farmer
     productionData: {
       name: "E2E Cross-Chain Cherry",
-      description: "End-to-end SATP transfer test — Cereja do Fundão",
+      description: "End-to-end SATP transfer test - Cereja do Fundão",
       createdAt: new Date().toISOString().split("T")[0],
       origin: "Fundão, Portugal",
       productionMethod: "Produção Integrada",
@@ -134,7 +134,7 @@ async function main() {
   //  Step 2: Initiate SATP cross-chain transfer
   // ══════════════════════════════════════════════════════════════════════════
 
-  section("Step 2: SATP Cross-Chain Transfer (Chain 1 → Chain 2)");
+  section("Step 2: SATP Cross-Chain Transfer (Chain 1 -> Chain 2)");
 
   const t0Transfer = Date.now();
   let sessionId: string;
@@ -143,7 +143,7 @@ async function main() {
       dppId: tokenId,
     });
     sessionId = transferRes.sessionId;
-    pass(`Transfer initiated — sessionId: ${sessionId}`);
+    pass(`Transfer initiated - sessionId: ${sessionId}`);
   } catch (e: any) {
     fail(`Cross-chain transfer failed to initiate: ${e.message}`);
     record("SATP transfer initiated", false, e.message);
@@ -179,12 +179,12 @@ async function main() {
         break;
       }
     } catch {
-      // Status endpoint may not be ready yet — keep polling
+      // Status endpoint may not be ready yet - keep polling
     }
   }
 
   const transferDuration = Date.now() - t0Transfer;
-  timings.push({ phase: "SATP transfer (lock→mint→assign→burn)", durationMs: transferDuration });
+  timings.push({ phase: "SATP transfer (lock->mint->assign->burn)", durationMs: transferDuration });
 
   record(
     "SATP transfer completed",
@@ -196,7 +196,7 @@ async function main() {
   //  Step 4: Wait for metadata sync to complete
   // ══════════════════════════════════════════════════════════════════════════
 
-  section("Step 4: Wait for Metadata Sync (restoreCrossChainData)");
+  section("Step 4: Wait for Metadata Sync (importCrossChainData)");
 
   // The background sync in launch-api.ts polls the SATP session and then calls
   // /restore-cross-chain-data on chain 2. Give it extra time to complete.
@@ -249,8 +249,8 @@ async function main() {
       `chain1=${chain1MetaHash.substring(0, 16)} chain2=${chain2MetaHash.substring(0, 16)}`,
     );
   } else {
-    // Metadata may still be the raw JSON string — try parsing
-    warn("Chain 2 publicData is empty — metadata sync may not have completed");
+    // Metadata may still be the raw JSON string - try parsing
+    warn("Chain 2 publicData is empty - metadata sync may not have completed");
     record("Metadata hash matches (data integrity)", false, "publicData empty on chain 2");
   }
 
@@ -303,10 +303,10 @@ async function main() {
     return entry;
   });
 
-  // Check for CrossChainRestore event
-  const hasRestore = parsedHistory.some((e: any) => e.event === "CrossChainRestore");
+  // Check for CrossChainImport event
+  const hasRestore = parsedHistory.some((e: any) => e.event === "CrossChainImport");
   record(
-    "CrossChainRestore event present in chain 2 history",
+    "CrossChainImport event present in chain 2 history",
     hasRestore,
     `events: ${parsedHistory.map((e: any) => e.event).join(", ")}`,
   );
@@ -318,9 +318,9 @@ async function main() {
     hasMint,
   );
 
-  // History should have at least: Mint + CrossChainRestore
+  // History should have at least: Mint + CrossChainImport
   record(
-    "Chain 2 history has at least 2 events (Mint + CrossChainRestore)",
+    "Chain 2 history has at least 2 events (Mint + CrossChainImport)",
     chain2History.length >= 2,
     `got ${chain2History.length}`,
   );
@@ -357,7 +357,7 @@ async function main() {
   });
 
   if (passed === total) pass("All E2E cross-chain tests passed!");
-  else fail(`${total - passed} test(s) failed — see details above`);
+  else fail(`${total - passed} test(s) failed - see details above`);
 }
 
 main().catch((e) => {

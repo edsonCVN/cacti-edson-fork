@@ -1,5 +1,5 @@
 /**
- * shared.ts — Common utilities for all evaluation scripts.
+ * shared.ts - Common utilities for all evaluation scripts.
  *
  * Provides contract compilation, deployment, role setup, and reporting helpers.
  *
@@ -9,7 +9,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
-// @ts-expect-error — no type declarations for solc
+// @ts-expect-error - no type declarations for solc
 import * as solc from "solc";
 import { ethers } from "ethers";
 import fetch from "node-fetch";

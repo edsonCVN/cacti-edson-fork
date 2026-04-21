@@ -14,7 +14,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
-// @ts-expect-error — no type declarations for solc
+// @ts-expect-error - no type declarations for solc
 import * as solc from "solc";
 import { ethers } from "ethers";
 import { EVMDPPLeaf } from "../src/main/typescript/implementations/evm-dpp-leaf";
@@ -147,7 +147,7 @@ async function main() {
   const createRes = await plugin.createDPP({
     owner: deployerAddr,
     productionData: {
-      name: "Cereja do Fundão IGP — Lote #1001",
+      name: "Cereja do Fundão IGP - Lote #1001",
       description: "Caixa de 2kg de cerejas Burlat, colhidas à mão.",
       createdAt: "2025-06-15T08:00:00Z",
       origin: "Fundão, Portugal",
@@ -168,7 +168,7 @@ async function main() {
     typeof createRes.txHash === "string",
     "createDPP must return a txHash",
   );
-  pass(`DPP created — ID: ${createRes.dppId}, TX: ${createRes.txHash}`);
+  pass(`DPP created - ID: ${createRes.dppId}, TX: ${createRes.txHash}`);
   const dppId = createRes.dppId;
 
   // 1b. Verify initial state
@@ -248,7 +248,7 @@ async function main() {
   // ===========================================================================
   //  TEST 2: DPP aggregation
   // ===========================================================================
-  section("TEST 2: DPP aggregation (3 → 1 lot)");
+  section("TEST 2: DPP aggregation (3 -> 1 lot)");
 
   const childIds: string[] = [];
   for (let i = 0; i < 3; i++) {
@@ -264,7 +264,7 @@ async function main() {
       },
     } as any);
     childIds.push(r.dppId);
-    info(`Child DPP #${i + 1} created — ID: ${r.dppId}`);
+    info(`Child DPP #${i + 1} created - ID: ${r.dppId}`);
   }
 
   // Processor aggregates (deployer holds PROCESSOR_ROLE)
@@ -278,7 +278,7 @@ async function main() {
     typeof aggRes.newDPPBoxId !== "undefined",
     "aggregateDPPtoBox must return newDPPBoxId",
   );
-  pass(`Lot created — ID: ${aggRes.newDPPBoxId}`);
+  pass(`Lot created - ID: ${aggRes.newDPPBoxId}`);
 
   const lotData = await plugin.getDPPData({ dppId: aggRes.newDPPBoxId });
   assert(
@@ -305,7 +305,7 @@ async function main() {
   );
 
   // ===========================================================================
-  //  TEST 3: SATP bridge functions — direct contract calls
+  //  TEST 3: SATP bridge functions - direct contract calls
   // ===========================================================================
   section("TEST 3: SATP bridge functions");
 
@@ -319,7 +319,7 @@ async function main() {
     },
   } as any);
   const bridgeDppId = bridgeCreateRes.dppId;
-  pass(`Bridge test DPP created — ID: ${bridgeDppId}`);
+  pass(`Bridge test DPP created - ID: ${bridgeDppId}`);
 
   // 3b. lock: transfer DPP from deployer to contract (contract is a valid ERC721 receiver)
   const lockPlugin = new EVMDPPLeaf({
@@ -334,7 +334,7 @@ async function main() {
   } as any);
   assert(lockRes.success, "lock must succeed");
   assert(typeof lockRes.txHash === "string", "lock must return txHash");
-  pass(`lock — DPP ${bridgeDppId} locked, TX: ${lockRes.txHash}`);
+  pass(`lock - DPP ${bridgeDppId} locked, TX: ${lockRes.txHash}`);
 
   const dataLocked = await plugin.getDPPData({ dppId: bridgeDppId });
   assert(
@@ -361,7 +361,7 @@ async function main() {
     dataUnlocked.dppData.status !== "LOCKED_CROSSCHAIN",
     "State must change after unlock",
   );
-  pass(`unlock — state after unlock: ${dataUnlocked.dppData.status}`);
+  pass(`unlock - state after unlock: ${dataUnlocked.dppData.status}`);
 
   // 3d. lock again, then burn (simulating Phase 3 source-chain burn)
   const lockTx2 = await rawContract.lock(
@@ -372,10 +372,10 @@ async function main() {
   await lockTx2.wait();
   pass(`Re-locked DPP ${bridgeDppId} for burn test`);
 
-  // burn requires BRIDGE_ROLE — deployer has it from constructor
+  // burn requires BRIDGE_ROLE - deployer has it from constructor
   const burnTx = await rawContract.burn(bridgeDppId);
   await burnTx.wait();
-  pass(`burn — DPP ${bridgeDppId} burned (source chain Phase 3)`);
+  pass(`burn - DPP ${bridgeDppId} burned (source chain Phase 3)`);
 
   // After burn, ownerOf reverts, so getDPPData should fail
   try {
@@ -385,7 +385,7 @@ async function main() {
     pass("getDPPData correctly rejected for burned token");
   }
 
-  // 3e. mint — simulate destination chain mint (new token with same ID on destination)
+  // 3e. mint - simulate destination chain mint (new token with same ID on destination)
   //     Use a high token ID to avoid collision with auto-incremented IDs
   const destTokenId = 9999;
   const mintTx = await rawContract.mint(deployerAddr, destTokenId);
@@ -395,9 +395,9 @@ async function main() {
     dataMinted.dppData.status === "ACTIVE",
     `Expected ACTIVE after mint, got ${dataMinted.dppData.status}`,
   );
-  pass(`mint — DPP #${destTokenId} minted on destination chain`);
+  pass(`mint - DPP #${destTokenId} minted on destination chain`);
 
-  // 3f. assign — transfer minted token from deployer to final receiver
+  // 3f. assign - transfer minted token from deployer to final receiver
   //     First approve the contract to act as bridge (for safeTransferFrom)
   const approveTx = await rawContract.approve(contractAddress, destTokenId);
   await approveTx.wait();
@@ -408,7 +408,7 @@ async function main() {
     dataAssigned.dppData.owner.toLowerCase() === receiverAddr.toLowerCase(),
     `Expected owner ${receiverAddr}, got ${dataAssigned.dppData.owner}`,
   );
-  pass(`assign — DPP #${destTokenId} transferred to receiver ${receiverAddr}`);
+  pass(`assign - DPP #${destTokenId} transferred to receiver ${receiverAddr}`);
 
   // ===========================================================================
   //  TEST 4: hasBridgeRole / grantBridgeRole
@@ -443,7 +443,7 @@ async function main() {
   // ===========================================================================
   //  Summary
   // ===========================================================================
-  section("✅ All tests passed");
+  section("All tests passed");
   console.log(`  Contract : ${contractAddress}`);
   console.log(`  Node     : ${rpcUrl}`);
   console.log(`  Tests    : 4 suites\n`);

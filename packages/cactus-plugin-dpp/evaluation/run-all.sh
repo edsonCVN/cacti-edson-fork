@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# run-all.sh — Run all evaluation scripts sequentially.
+# run-all.sh - Run all evaluation scripts sequentially.
 #
 # Prerequisites:
 #   - Hardhat or Anvil node running on http://127.0.0.1:8545
@@ -50,7 +50,7 @@ echo "▶ [6/6] E2E SATP Cross-Chain Transfer (requires full SATP setup)..."
 if curl -s http://127.0.0.1:3003/api/v1/@hyperledger/cactus-plugin-dpp/config > /dev/null 2>&1; then
   $TS evaluation/06-cross-chain-e2e.ts
 else
-  echo "  ⚠ Skipped — chain 2 API not reachable (start all SATP services for this test)"
+  echo "  ⚠ Skipped - chain 2 API not reachable (start all SATP services for this test)"
 fi
 echo ""
 

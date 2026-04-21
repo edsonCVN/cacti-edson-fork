@@ -12,7 +12,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
-// @ts-expect-error — no type declarations for solc
+// @ts-expect-error - no type declarations for solc
 import * as solc from "solc";
 import { ethers } from "ethers";
 import { EVMDPPLeaf } from "../src/main/typescript/implementations/evm-dpp-leaf";
@@ -150,7 +150,7 @@ async function main() {
   } as any);
 
   console.log(
-    `✔ DPP created — ID: ${createRes1.dppId}, TX: ${createRes1.txHash}`,
+    `✔ DPP created - ID: ${createRes1.dppId}, TX: ${createRes1.txHash}`,
   );
 
   // Verify state is ACTIVE before transfer
@@ -205,7 +205,7 @@ async function main() {
       owner: await deployer.getAddress(),
       productionData: {
         name: `dão IGP - Lote #300${i + 1}`,
-        description: `Caixa ${i + 1} de 2kg — variedade Burlat.`,
+        description: `Caixa ${i + 1} de 2kg - variedade Burlat.`,
         createdAt: "2025-06-20",
         origin: "Fundão, Portugal",
         variety: "Burlat",
@@ -215,7 +215,7 @@ async function main() {
       },
     } as any);
     dppIds.push(res.dppId);
-    console.log(`  ✔ Created DPP #${i + 1} — ID: ${res.dppId}`);
+    console.log(`  ✔ Created DPP #${i + 1} - ID: ${res.dppId}`);
   }
   console.log(`\n✔ ${batchSize} DPPs created. IDs: [${dppIds.join(", ")}]\n`);
 
@@ -235,11 +235,11 @@ async function main() {
         recipientAddress: POLYGON_RECIPIENT,
         destinationNetwork: POLYGON_NETWORK_ID,
         transferReason:
-          "Batch export to Polygon PoS — retail logistics handover",
+          "Batch export to Polygon PoS - retail logistics handover",
       } as any);
 
       transferResults.push({ dppId, success: res.success, txHash: res.txHash });
-      console.log(`  ✔ DPP ${dppId} locked — TX: ${res.txHash}`);
+      console.log(`  ✔ DPP ${dppId} locked - TX: ${res.txHash}`);
     } catch (err: any) {
       transferResults.push({ dppId, success: false, error: err.message });
       console.error(`  ✘ DPP ${dppId} failed: ${err.message}`);
@@ -273,7 +273,7 @@ async function main() {
         `DPP ${dppId}: expected LOCKED_CROSSCHAIN, got ${status}`,
       );
     }
-    console.log(`  ✔ DPP ${dppId} — ${status}`);
+    console.log(`  ✔ DPP ${dppId} - ${status}`);
   }
 
   console.log("\n✔ Batch cross-chain transfer PASSED\n");
@@ -293,10 +293,10 @@ async function main() {
       dppId: createRes1.dppId,
       recipientAddress: POLYGON_RECIPIENT,
       destinationNetwork: POLYGON_NETWORK_ID,
-      transferReason: "This should fail — DPP is already locked",
+      transferReason: "This should fail - DPP is already locked",
     } as any);
 
-    // If we reach here, the contract did NOT revert — that may be unexpected
+    // If we reach here, the contract did NOT revert - that may be unexpected
     console.log(
       "⚠ Warning: Re-locking did not revert. The contract may allow idempotent locks.",
     );
@@ -308,7 +308,7 @@ async function main() {
   //  Summary
   // ──────────────────────────────────────────────────────────────────────────
   console.log("\n══════════════════════════════════════════════════");
-  console.log("  ✅ All cross-chain Polygon transfer tests passed!");
+  console.log("  All cross-chain Polygon transfer tests passed!");
   console.log("══════════════════════════════════════════════════\n");
 
   console.log("Destination Network : Polygon PoS");

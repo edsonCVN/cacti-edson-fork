@@ -1,6 +1,6 @@
 # DPP Evaluation Suite
 
-Evaluation scripts for the master's thesis, mapping to **Chapter 5 — Evaluation**.
+Evaluation scripts for the master's thesis, mapping to **Chapter 5 - Evaluation**.
 
 ## Prerequisites
 
@@ -40,7 +40,7 @@ npx ts-node --project tsconfig.hardhat.json evaluation/05-espr-compliance.ts
 | `05-espr-compliance.ts` | 5.5 ESPR Compliance | Does the DPP satisfy EU ESPR information requirements? |
 | `06-cross-chain-e2e.ts` | 5.2 Cross-Chain (E2E) | Does the full SATP pipeline preserve DPP integrity across independent EVM networks? |
 
-> **Note:** Scripts 01–05 run on a single local chain (Hardhat/Anvil). Script 06 requires the full SATP setup (2 chains, 2 gateways, 2 APIs) — see [Option B in the backend README](../README.md).
+> **Note:** Scripts 01–05 run on a single local chain (Hardhat/Anvil). Script 06 requires the full SATP setup (2 chains, 2 gateways, 2 APIs) - see [Option B in the backend README](../README.md).
 
 ## Results
 
@@ -70,6 +70,6 @@ slither contracts/DigitalProductPassport.sol \
 ## Notes
 
 - All scripts deploy a **fresh contract** per run (no state pollution between tests)
-- Performance numbers are from a local Hardhat/Anvil node — frame as "local testnet baseline" in the thesis
+- Performance numbers are from a local Hardhat/Anvil node - frame as "local testnet baseline" in the thesis
 - The ESPR compliance mapping references EU Regulation 2024/1781 Article 8
 - Gas cost estimates use configurable ETH/MATIC prices (edit `01-gas-profiling.ts`)

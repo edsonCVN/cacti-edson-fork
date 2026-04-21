@@ -1,8 +1,8 @@
 /**
- * generate-report.ts — Thesis-Ready Evaluation Report
+ * generate-report.ts - Thesis-Ready Evaluation Report
  *
  * Reads all JSON results from evaluation/results/ and generates a formatted
- * Markdown report with tables, interpretation, and key findings — ready to
+ * Markdown report with tables, interpretation, and key findings - ready to
  * copy into the thesis.
  *
  * Run:
@@ -38,7 +38,7 @@ function main() {
 
   const report: string[] = [];
 
-  report.push("# Chapter 5 — Evaluation Results");
+  report.push("# Chapter 5 - Evaluation Results");
   report.push("");
   report.push(`> Auto-generated from evaluation results on ${new Date().toISOString().split("T")[0]}`);
   report.push(`> Environment: Hardhat/Anvil local EVM node (single validator, instant mining)`);
@@ -80,16 +80,16 @@ function main() {
 
     const satpOps = ops.filter((o) => o.operation.includes("lock") || o.operation.includes("burn") || o.operation.includes("assign"));
     const totalSATP = satpOps.reduce((s, o) => s + o.gasUsed, 0);
-    const restore = ops.find((o) => o.operation.includes("restoreCrossChainData"));
+    const restore = ops.find((o) => o.operation.includes("importCrossChainData"));
 
     report.push("### Interpretation");
     report.push("");
-    report.push(`- **Cheapest operation:** ${cheapest.operation} (${cheapest.gasUsed.toLocaleString()} gas) — simple state transitions are cost-effective`);
-    report.push(`- **Most expensive:** ${mostExpensive.operation} (${mostExpensive.gasUsed.toLocaleString()} gas) — high cost driven by on-chain metadata storage size`);
+    report.push(`- **Cheapest operation:** ${cheapest.operation} (${cheapest.gasUsed.toLocaleString()} gas) - simple state transitions are cost-effective`);
+    report.push(`- **Most expensive:** ${mostExpensive.operation} (${mostExpensive.gasUsed.toLocaleString()} gas) - high cost driven by on-chain metadata storage size`);
     report.push(`- **Average state change** (receive/retail/revoke): ${avgStateChange.toLocaleString()} gas`);
     report.push(`- **Full SATP cross-chain transfer** (lock + burn + assign): ${totalSATP.toLocaleString()} gas on source chain`);
     if (restore) {
-      report.push(`- **Cross-chain data restoration:** ${restore.gasUsed.toLocaleString()} gas — the most expensive single operation due to writing full metadata + history + certifications in one transaction`);
+      report.push(`- **Cross-chain data restoration:** ${restore.gasUsed.toLocaleString()} gas - the most expensive single operation due to writing full metadata + history + certifications in one transaction`);
     }
     report.push(`- **Full lifecycle total:** ${gas.totalGas.toLocaleString()} gas`);
     report.push("");
@@ -102,8 +102,8 @@ function main() {
     report.push(`| Network | Full Lifecycle Cost | Viability |`);
     report.push(`|---------|-------------------|-----------|`);
     report.push(`| Ethereum L1 | $${fullLifecycleL1.toFixed(2)} | Prohibitive for per-product DPPs; suitable only for high-value batches |`);
-    report.push(`| Polygon PoS | $${fullLifecyclePolygon.toFixed(4)} | Highly viable — sub-cent cost per DPP lifecycle |`);
-    report.push(`| Arbitrum L2 | $${fullLifecycleArb.toFixed(4)} | Viable — under $2 for a complete DPP lifecycle |`);
+    report.push(`| Polygon PoS | $${fullLifecyclePolygon.toFixed(4)} | Highly viable - sub-cent cost per DPP lifecycle |`);
+    report.push(`| Arbitrum L2 | $${fullLifecycleArb.toFixed(4)} | Viable - under $2 for a complete DPP lifecycle |`);
     report.push("");
     report.push("**Conclusion:** The DPP lifecycle is economically feasible on L2 networks and sidechains. On Ethereum L1, the cost is dominated by metadata storage (the `additionalMetadataURI` field); storing only IPFS CIDs on-chain would reduce gas by ~60% but sacrifices data availability guarantees.");
     report.push("");
@@ -119,7 +119,7 @@ function main() {
       report.push("");
     }
   } else {
-    report.push("*Results not available — run `01-gas-profiling.ts`*");
+    report.push("*Results not available - run `01-gas-profiling.ts`*");
     report.push("");
   }
 
@@ -143,7 +143,7 @@ function main() {
     report.push("| # | Test | Result | Details |");
     report.push("|---|------|--------|---------|");
     tests.forEach((t, i) => {
-      report.push(`| ${i + 1} | ${t.name} | ${t.passed ? "PASS" : "FAIL"} | ${t.details || "—"} |`);
+      report.push(`| ${i + 1} | ${t.name} | ${t.passed ? "PASS" : "FAIL"} | ${t.details || "-"} |`);
     });
     report.push("");
     report.push(`**Result: ${passed}/${tests.length} tests passed**`);
@@ -151,9 +151,9 @@ function main() {
 
     report.push("### Interpretation");
     report.push("");
-    report.push("- **Data integrity:** SHA-256 hash of the metadata JSON matches before and after cross-chain transfer, proving zero data loss during the SATP lock→mint→restore pipeline");
-    report.push("- **History completeness:** All source-chain events are preserved on the destination chain, plus a `CrossChainRestore` event marking the transfer. No phantom events are introduced");
-    report.push("- **Round-trip correctness:** After two consecutive transfers (A→B→A), the event count is exactly `original + 2` (one `CrossChainRestore` per transfer), with no duplicate `Mint` events — the `delete _history` + `delete _certifications` mechanism in `restoreCrossChainData()` prevents accumulation");
+    report.push("- **Data integrity:** SHA-256 hash of the metadata JSON matches before and after cross-chain transfer, proving zero data loss during the SATP lock->mint->restore pipeline");
+    report.push("- **History completeness:** All source-chain events are preserved on the destination chain, plus a `CrossChainImport` event marking the transfer. No phantom events are introduced");
+    report.push("- **Round-trip correctness:** After two consecutive transfers (A->B->A), the event count is exactly `original + 2` (one `CrossChainImport` per transfer), with no duplicate `Mint` events - the `delete _history` + `delete _certifications` mechanism in `importCrossChainData()` prevents accumulation");
     report.push("- **Failure recovery:** The `unlock()` rollback correctly restores both the token ownership and state to `CREATED` when a transfer is aborted");
     report.push("");
   }
@@ -167,7 +167,7 @@ function main() {
     report.push("| # | Test | Result | Details |");
     report.push("|---|------|--------|---------|");
     e2eTests.forEach((t, i) => {
-      report.push(`| ${i + 1} | ${t.name} | ${t.passed ? "PASS" : "FAIL"} | ${(t.details || "—").substring(0, 60)} |`);
+      report.push(`| ${i + 1} | ${t.name} | ${t.passed ? "PASS" : "FAIL"} | ${(t.details || "-").substring(0, 60)} |`);
     });
     report.push("");
     report.push(`**Result: ${e2ePassed}/${e2eTests.length} tests passed**`);
@@ -202,7 +202,7 @@ function main() {
     // Group by category
     const accessControl = tests.filter((t) => t.name.includes("rejects unauthorized") || t.name.includes("rejects processor") || t.name.includes("rejects farmer") || t.name.includes("rejects non-bridge") || t.name.includes("rejects non-owner"));
     const revokedInvariant = tests.filter((t) => t.name.includes("revoked"));
-    const bridgeRole = tests.filter((t) => t.name.includes("restoreCrossChainData") || t.name.includes("grantBridgeRole"));
+    const bridgeRole = tests.filter((t) => t.name.includes("importCrossChainData") || t.name.includes("grantBridgeRole"));
 
     report.push("### Access Control Matrix");
     report.push("");
@@ -239,8 +239,8 @@ function main() {
     report.push("### Interpretation");
     report.push("");
     report.push("- The OpenZeppelin `AccessControl` + custom `notRevoked` modifier pattern provides defense-in-depth: operations are rejected both by role check AND state check");
-    report.push("- The `BRIDGE_ROLE` is strictly limited to SATP gateway functions (`mint`, `burn`) — it cannot amend data, transfer ownership, or revoke DPPs");
-    report.push("- `restoreCrossChainData` is restricted to `DEFAULT_ADMIN_ROLE` and `GATEWAY_ROLE`, preventing unauthorized data injection on the destination chain");
+    report.push("- The `BRIDGE_ROLE` is strictly limited to SATP gateway functions (`mint`, `burn`) - it cannot amend data, transfer ownership, or revoke DPPs");
+    report.push("- `importCrossChainData` is restricted to `DEFAULT_ADMIN_ROLE` and `GATEWAY_ROLE`, preventing unauthorized data injection on the destination chain");
     report.push("- **Recommendation:** Run Slither static analysis for additional vulnerability detection (reentrancy, integer overflow, etc.)");
     report.push("");
   }
@@ -286,10 +286,10 @@ function main() {
 
     report.push("### Interpretation");
     report.push("");
-    report.push("- **Read operations** (getDPPData, getHistory) are consistently fast at **2-3ms**, unaffected by the number of DPPs on-chain — this is expected since Solidity mappings have O(1) access");
+    report.push("- **Read operations** (getDPPData, getHistory) are consistently fast at **2-3ms**, unaffected by the number of DPPs on-chain - this is expected since Solidity mappings have O(1) access");
     report.push("- **Write operations** average **9-11ms** on a local node with instant mining. On a real network with block confirmation, expect 2-15s depending on the consensus mechanism");
     report.push("- **Transfer** is ~2x slower than other writes because it involves an internal ownership check + state change + history append + ERC-721 transfer");
-    report.push("- **Scalability curve is flat** — latency does not increase with the number of on-chain DPPs, confirming that the smart contract design scales horizontally");
+    report.push("- **Scalability curve is flat** - latency does not increase with the number of on-chain DPPs, confirming that the smart contract design scales horizontally");
     report.push("- **Caveat:** These measurements are from a local Hardhat/Anvil node with instant mining and no network latency. Production latency will be dominated by block confirmation times, not contract execution");
     report.push("");
 
@@ -299,7 +299,7 @@ function main() {
       for (const cc of performance.crossChainLatencies) {
         report.push(`- **${cc.transfer} transfers:** Avg = ${(cc.avgMs / 1000).toFixed(1)}s, Min = ${(cc.minMs / 1000).toFixed(1)}s, Max = ${(cc.maxMs / 1000).toFixed(1)}s`);
       }
-      report.push("- Cross-chain latency is dominated by SATP protocol phases and the 15s metadata sync wait — not by smart contract execution");
+      report.push("- Cross-chain latency is dominated by SATP protocol phases and the 15s metadata sync wait - not by smart contract execution");
       report.push("");
     }
   }
@@ -339,8 +339,8 @@ function main() {
     report.push("- **Traceability** (8.2.d-f): Geographic origin, production method, and full supply chain history with actor addresses and timestamps provide end-to-end provenance");
     report.push("- **Circular economy** (8.2.i-k): Packaging materials, recyclability percentages, disposal instructions, and return schemes are structured in the `circular_economy` metadata object");
     report.push("- **Access control** (8.3): Seven roles enforced on-chain via OpenZeppelin AccessControl map directly to ESPR supply chain actors");
-    report.push("- **Immutability** (8.4): Blockchain consensus guarantees tamper-proof audit trails — events cannot be modified or deleted after recording");
-    report.push("- **Interoperability** (8.5): SATP cross-chain transfers with `restoreCrossChainData` enable DPP portability across heterogeneous EVM networks");
+    report.push("- **Immutability** (8.4): Blockchain consensus guarantees tamper-proof audit trails - events cannot be modified or deleted after recording");
+    report.push("- **Interoperability** (8.5): SATP cross-chain transfers with `importCrossChainData` enable DPP portability across heterogeneous EVM networks");
     report.push("- **Data availability** (8.6): Dual storage (on-chain JSON + IPFS pinning) provides both decentralized access and resilience against gateway failures");
     report.push("");
   }
@@ -358,7 +358,7 @@ function main() {
   }
   if (crossChain) {
     const p = crossChain.tests.filter((t: any) => t.passed).length;
-    report.push(`| Cross-Chain | SATP integrity | ${p}/${crossChain.tests.length} tests passed — zero data loss |`);
+    report.push(`| Cross-Chain | SATP integrity | ${p}/${crossChain.tests.length} tests passed - zero data loss |`);
   }
   if (security) {
     const p = security.tests.filter((t: any) => t.passed).length;

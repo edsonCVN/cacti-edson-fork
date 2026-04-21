@@ -1,13 +1,13 @@
 /**
- * 02-cross-chain-validation.ts — Cross-Chain Interoperability Validation
+ * 02-cross-chain-validation.ts - Cross-Chain Interoperability Validation
  *
  * Tests SATP protocol correctness on a single chain by simulating the full
- * lock → mint → assign → burn → restoreCrossChainData flow.
+ * lock -> mint -> assign -> burn -> importCrossChainData flow.
  *
  * Validates:
  *   - Data integrity (metadata hash match before/after)
- *   - History completeness (all events preserved + CrossChainRestore added)
- *   - Round-trip transfer (chain A → B → A, no duplicates)
+ *   - History completeness (all events preserved + CrossChainImport added)
+ *   - Round-trip transfer (chain A -> B -> A, no duplicates)
  *   - Failure recovery (unlock rollback)
  *
  * Research question: Does SATP preserve DPP integrity across chains?
@@ -33,7 +33,7 @@ function sha256(data: string): string {
 }
 
 async function main() {
-  section("5.2 — Cross-Chain Interoperability Validation");
+  section("5.2 - Cross-Chain Interoperability Validation");
   const env = await deploy();
   const { contract, farmer, bridge, processor } = env;
   const farmerAddr = await farmer.getAddress();
@@ -47,12 +47,12 @@ async function main() {
 
   function record(name: string, passed: boolean, details?: string) {
     results.tests.push({ name, passed, details });
-    if (passed) pass(name + (details ? ` — ${details}` : ""));
-    else fail(name + (details ? ` — ${details}` : ""));
+    if (passed) pass(name + (details ? ` - ${details}` : ""));
+    else fail(name + (details ? ` - ${details}` : ""));
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  //  TEST 1: Data Integrity — metadata hash must match after cross-chain
+  //  TEST 1: Data Integrity - metadata hash must match after cross-chain
   // ══════════════════════════════════════════════════════════════════════════
 
   section("Test 1: Data Integrity");
@@ -83,7 +83,7 @@ async function main() {
   const historyBefore: string[] = await contract.getHistory(tokenId);
   info(`History events before: ${historyBefore.length}`);
 
-  // Simulate SATP: lock → burn on source
+  // Simulate SATP: lock -> burn on source
   await (await contract.connect(farmer).approve(bridgeAddr, tokenId)).wait();
   await (
     await contract.connect(bridge).lock(farmerAddr, bridgeAddr, tokenId)
@@ -99,7 +99,7 @@ async function main() {
   // Restore cross-chain data
   const certs = await contract.getCertifications(tokenId).catch(() => []);
   await (
-    await contract.restoreCrossChainData(
+    await contract.importCrossChainData(
       5000,
       dataBefore.productName,
       dataBefore.creationDate,
@@ -108,7 +108,7 @@ async function main() {
       historyBefore,
     )
   ).wait();
-  info("Destination: restoreCrossChainData called");
+  info("Destination: importCrossChainData called");
 
   // Verify data integrity
   const dataAfter = await contract.getDPPDataUnchecked(5000);
@@ -142,20 +142,20 @@ async function main() {
   const historyAfter: string[] = await contract.getHistory(5000);
   info(`History events after restore: ${historyAfter.length}`);
   info(
-    `Expected: ${historyBefore.length} (source) + 1 (CrossChainRestore) = ${historyBefore.length + 1}`,
+    `Expected: ${historyBefore.length} (source) + 1 (CrossChainImport) = ${historyBefore.length + 1}`,
   );
 
   record(
-    "History count = source events + CrossChainRestore",
+    "History count = source events + CrossChainImport",
     historyAfter.length === historyBefore.length + 1,
     `got ${historyAfter.length}, expected ${historyBefore.length + 1}`,
   );
 
-  // Check last event is CrossChainRestore
+  // Check last event is CrossChainImport
   const lastEvent = JSON.parse(historyAfter[historyAfter.length - 1]);
   record(
-    "Last history event is CrossChainRestore",
-    lastEvent.event === "CrossChainRestore",
+    "Last history event is CrossChainImport",
+    lastEvent.event === "CrossChainImport",
     `got "${lastEvent.event}"`,
   );
 
@@ -170,7 +170,7 @@ async function main() {
   record("All source history events preserved in order", allSourcePresent);
 
   // ══════════════════════════════════════════════════════════════════════════
-  //  TEST 3: Round-Trip Transfer (A → B → A)
+  //  TEST 3: Round-Trip Transfer (A -> B -> A)
   // ══════════════════════════════════════════════════════════════════════════
 
   section("Test 3: Round-Trip Transfer (no duplicates)");
@@ -192,7 +192,7 @@ async function main() {
   ).wait();
   info(`Created round-trip DPP: token #${rtToken}`);
 
-  // First transfer: source → destination (token 6000)
+  // First transfer: source -> destination (token 6000)
   const rtHistBefore: string[] = await contract.getHistory(rtToken);
   const rtCerts = await contract.getCertifications(rtToken).catch(() => []);
   const rtData = await contract.getDPPData(rtToken);
@@ -205,7 +205,7 @@ async function main() {
   await (await contract.connect(bridge).mint(bridgeAddr, 6000)).wait();
   await (await contract.connect(bridge).assign(farmerAddr, 6000)).wait();
   await (
-    await contract.restoreCrossChainData(
+    await contract.importCrossChainData(
       6000,
       rtData.productName,
       rtData.creationDate,
@@ -214,12 +214,12 @@ async function main() {
       rtHistBefore,
     )
   ).wait();
-  info("Transfer 1 complete: token 1 → 6000");
+  info("Transfer 1 complete: token 1 -> 6000");
 
   const hist1: string[] = await contract.getHistory(6000);
   info(`After transfer 1: ${hist1.length} events`);
 
-  // Second transfer: destination → source (token 7000)
+  // Second transfer: destination -> source (token 7000)
   await (await contract.connect(farmer).approve(bridgeAddr, 6000)).wait();
   await (
     await contract.connect(bridge).lock(farmerAddr, bridgeAddr, 6000)
@@ -228,7 +228,7 @@ async function main() {
   await (await contract.connect(bridge).mint(bridgeAddr, 7000)).wait();
   await (await contract.connect(bridge).assign(farmerAddr, 7000)).wait();
   await (
-    await contract.restoreCrossChainData(
+    await contract.importCrossChainData(
       7000,
       rtData.productName,
       rtData.creationDate,
@@ -237,14 +237,14 @@ async function main() {
       hist1,
     )
   ).wait();
-  info("Transfer 2 complete: token 6000 → 7000");
+  info("Transfer 2 complete: token 6000 -> 7000");
 
   const hist2: string[] = await contract.getHistory(7000);
   info(`After transfer 2: ${hist2.length} events`);
 
   // Original had 1 event (Mint), after 2 transfers should have:
-  // Mint + CrossChainRestore (transfer 1) + CrossChainRestore (transfer 2) = 3
-  const expectedEvents = rtHistBefore.length + 2; // +2 CrossChainRestore
+  // Mint + CrossChainImport (transfer 1) + CrossChainImport (transfer 2) = 3
+  const expectedEvents = rtHistBefore.length + 2; // +2 CrossChainImport
   record(
     "Round-trip: correct event count (no duplicates)",
     hist2.length === expectedEvents,

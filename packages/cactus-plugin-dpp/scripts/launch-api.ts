@@ -29,7 +29,7 @@ const SATP_GATEWAY_1 = "http://localhost:4010";
 const CHAIN2_API     = "http://127.0.0.1:3003";
 const DPP_API_BASE   = "/api/v1/@hyperledger/cactus-plugin-dpp";
 
-// Gateway-1 EOA signer — deploys SATPWrapper at nonce 9 (after deploy-dpp.js runs 9 txs)
+// Gateway-1 EOA signer - deploys SATPWrapper at nonce 9 (after deploy-dpp.js runs 9 txs)
 const GATEWAY_SIGNER_1 = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 const SATP_WRAPPER_1   = ethers.utils.getContractAddress({ from: GATEWAY_SIGNER_1, nonce: 9 });
 
@@ -69,7 +69,7 @@ function compileContract() {
   return { abi: c.abi, bytecode: c.evm.bytecode.object };
 }
 
-// ─── Background metadata sync (chain 1 → chain 2 after SATP completes) ──────
+// ─── Background metadata sync (chain 1 -> chain 2 after SATP completes) ──────
 
 /**
  * After a successful SATP cross-chain transfer the token on chain 2 is minted
@@ -105,7 +105,7 @@ async function syncMetadataToChain2(
       const sub = st?.substatus?.toUpperCase();
       if (s === "DONE" || sub === "COMPLETED") break;
       if (s === "FAILED" || s === "INVALID") {
-        console.error(`[metadata-sync] Session ${sessionId} failed — skipping metadata sync`);
+        console.error(`[metadata-sync] Session ${sessionId} failed - skipping metadata sync`);
         return;
       }
     } catch { /* keep polling */ }
@@ -150,14 +150,14 @@ async function main() {
     await allSigners[0].getAddress();
     console.log(`Connected to local node at ${rpcUrl}`);
   } catch {
-    console.error("Could not connect to local node — run Hardhat or Anvil first.");
+    console.error("Could not connect to local node - run Hardhat or Anvil first.");
     process.exit(1);
   }
 
   const deployer = allSigners[0];
   const deployerAddr = await deployer.getAddress();
 
-  // Build address → signer map for role-aware routing
+  // Build address -> signer map for role-aware routing
   const signerMap: Record<string, ethers.Signer> = {};
   for (const s of allSigners) {
     signerMap[(await s.getAddress()).toLowerCase()] = s;
@@ -168,7 +168,7 @@ async function main() {
   let needsDeploy = true;
 
   if (fs.existsSync(ADDRESSES_FILE)) {
-    // ── Mode A: SATP-aware — share the contract deployed by deploy-dpp.js ───
+    // ── Mode A: SATP-aware - share the contract deployed by deploy-dpp.js ───
     const deployed = JSON.parse(fs.readFileSync(ADDRESSES_FILE, "utf8"));
     const savedAddr = deployed.chain1.contractAddress;
     // Verify the contract still exists on-chain (node may have been restarted)
@@ -179,14 +179,14 @@ async function main() {
       console.log(`Using existing contract from deployed-addresses.json: ${contractAddress}`);
       console.log("Supply-chain roles were already granted by deploy-dpp.js.");
     } else {
-      console.log(`Contract at ${savedAddr} no longer exists (node was restarted?) — redeploying.`);
+      console.log(`Contract at ${savedAddr} no longer exists (node was restarted?) - redeploying.`);
       fs.unlinkSync(ADDRESSES_FILE);
     }
   }
 
   if (needsDeploy) {
-    // ── Mode B: Standalone — deploy fresh + grant roles + write file ─────────
-    console.log("deployed-addresses.json not found — deploying fresh contract (standalone mode).");
+    // ── Mode B: Standalone - deploy fresh + grant roles + write file ─────────
+    console.log("deployed-addresses.json not found - deploying fresh contract (standalone mode).");
     const compiled = compileContract();
     const factory = new ethers.ContractFactory(compiled.abi, compiled.bytecode, deployer);
     const contract = await factory.deploy(deployerAddr);
@@ -215,7 +215,7 @@ async function main() {
       ADDRESSES_FILE,
       JSON.stringify({ chain1: { contractAddress, ownerAddress: deployerAddr } }, null, 2),
     );
-    console.log(`Wrote deployed-addresses.json (chain1 only — start deploy-dpp.js for chain2).`);
+    console.log(`Wrote deployed-addresses.json (chain1 only - start deploy-dpp.js for chain2).`);
   }
 
   // ── EVMDPPLeaf factory ─────────────────────────────────────────────────────
@@ -265,7 +265,7 @@ async function main() {
   // Restore full DPP data after cross-chain transfer (called by the source chain's sync)
   app.post(`${base}/restore-cross-chain-data`, async (req, res) => {
     try {
-      res.json(await leaf.restoreCrossChainData({
+      res.json(await leaf.importCrossChainData({
         dppId: req.body.dppId,
         productName: req.body.productName,
         creationDate: req.body.creationDate,
@@ -379,7 +379,7 @@ async function main() {
           certifications: (dd.certifications || []).map((c: any) => typeof c === "string" ? c : JSON.stringify(c)),
           history: historyEntries,
         };
-      } catch { /* non-fatal — proceed without sync */ }
+      } catch { /* non-fatal - proceed without sync */ }
 
       // Look up the actual on-chain owner of this token so any signer can transfer
       const dppRO = new ethers.Contract(deployed.chain1.contractAddress, ERC721_APPROVAL_ABI, provider);
@@ -454,14 +454,14 @@ async function main() {
     }
   });
 
-  // ── Full DPP audit — fetches all passports + their complete histories ─────
+  // ── Full DPP audit - fetches all passports + their complete histories ─────
   app.get(`${base}/audit`, async (_req, res) => {
     try {
       const passports = await leaf.getAllPassportsForAudit();
       const auditEntries = await Promise.all(
         passports.map(async (p: any) => {
           const tokenId = String(p.tokenId ?? p.id);
-          // Use getRawHistory — works for burned tokens (getHistory has no ownership check)
+          // Use getRawHistory - works for burned tokens (getHistory has no ownership check)
           let history: any[] = [];
           try {
             history = await leaf.getRawHistory(tokenId);

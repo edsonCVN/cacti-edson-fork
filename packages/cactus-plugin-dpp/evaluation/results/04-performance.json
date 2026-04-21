@@ -1,89 +1,90 @@
 {
-  "timestamp": "2026-03-25T16:40:17.702Z",
+  "timestamp": "2026-04-21T14:00:59.358Z",
   "environment": "Hardhat local node (single validator)",
   "throughput": {
     "totalDPPs": 50,
-    "totalTimeMs": 514,
-    "txPerSecond": 97.27626459143968
+    "totalTimeMs": 722,
+    "txPerSecond": 69.25207756232687
   },
   "operationLatencies": [
     {
       "operation": "createDPP",
       "samples": 50,
-      "avgMs": 10,
-      "minMs": 7,
-      "maxMs": 12,
-      "p95Ms": 12
+      "avgMs": 14,
+      "minMs": 13,
+      "maxMs": 21,
+      "p95Ms": 17
     },
     {
       "operation": "amendDPPData",
       "samples": 10,
-      "avgMs": 10,
-      "minMs": 9,
-      "maxMs": 11,
-      "p95Ms": 11
+      "avgMs": 14,
+      "minMs": 12,
+      "maxMs": 15,
+      "p95Ms": 15
     },
     {
       "operation": "addCertification",
       "samples": 10,
-      "avgMs": 9,
-      "minMs": 8,
-      "maxMs": 10,
-      "p95Ms": 10
+      "avgMs": 13,
+      "minMs": 12,
+      "maxMs": 15,
+      "p95Ms": 15
     },
     {
       "operation": "updateTransportData",
       "samples": 10,
-      "avgMs": 10,
-      "minMs": 9,
-      "maxMs": 11,
-      "p95Ms": 11
+      "avgMs": 13,
+      "minMs": 12,
+      "maxMs": 15,
+      "p95Ms": 15
     },
     {
       "operation": "transferDPP",
       "samples": 10,
-      "avgMs": 20,
-      "minMs": 17,
-      "maxMs": 22,
-      "p95Ms": 22
+      "avgMs": 27,
+      "minMs": 25,
+      "maxMs": 30,
+      "p95Ms": 30
     },
     {
       "operation": "getDPPData (read)",
       "samples": 10,
-      "avgMs": 2,
-      "minMs": 2,
-      "maxMs": 3,
-      "p95Ms": 3
+      "avgMs": 4,
+      "minMs": 3,
+      "maxMs": 4,
+      "p95Ms": 4
     },
     {
       "operation": "getHistory (read)",
       "samples": 10,
-      "avgMs": 3,
-      "minMs": 3,
-      "maxMs": 4,
-      "p95Ms": 4
+      "avgMs": 5,
+      "minMs": 4,
+      "maxMs": 6,
+      "p95Ms": 6
     }
   ],
   "scalabilityCurve": [
     {
       "dppCount": 10,
-      "readLatencyMs": 2,
-      "writeLatencyMs": 10
-    },
-    {
-      "dppCount": 50,
-      "readLatencyMs": 2,
-      "writeLatencyMs": 10
+      "readLatencyMs": 4,
+      "writeLatencyMs": 13
     },
     {
       "dppCount": 100,
-      "readLatencyMs": 2,
-      "writeLatencyMs": 9
+      "readLatencyMs": 4,
+      "writeLatencyMs": 13
     },
     {
-      "dppCount": 200,
-      "readLatencyMs": 2,
-      "writeLatencyMs": 11
+      "dppCount": 1000,
+      "readLatencyMs": 3,
+      "writeLatencyMs": 14
+    },
+    {
+      "dppCount": 10000,
+      "readLatencyMs": 4,
+      "writeLatencyMs": 13
     }
-  ]
+  ],
+  "crossChainLatencies": "SATP not available — skipped"
 }

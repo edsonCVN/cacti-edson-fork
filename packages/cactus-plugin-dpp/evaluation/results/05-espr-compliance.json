@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-04-14T12:08:44.862Z",
+  "timestamp": "2026-04-21T13:58:29.725Z",
   "regulation": "EU ESPR (Regulation 2024/1781, Articles 9-11, Annex III)",
   "requirements": [
     {
@@ -118,7 +118,7 @@
       "requirement": "Role-based access to DPP data",
       "metadataField": "—",
       "contractField": "AccessControl (OpenZeppelin)",
-      "description": "7 roles enforced on-chain: FARMER, PROCESSOR, TRANSPORTER, RETAILER, GATEWAY, OWNER, ADMIN"
+      "description": "8 roles enforced on-chain: FARMER, PROCESSOR, TRANSPORTER, RETAILER, GATEWAY, BRIDGE, OWNER, DEFAULT_ADMIN"
     },
     {
       "id": "R15",
@@ -135,7 +135,7 @@
       "category": "Interoperability",
       "requirement": "Cross-system interoperability",
       "metadataField": "—",
-      "contractField": "SATP lock/mint/assign/burn + restoreCrossChainData",
+      "contractField": "SATP lock/mint/assign/burn + importCrossChainData",
       "description": "Full SATP Hermes integration for cross-chain DPP transfers with zero data loss"
     },
     {
@@ -258,7 +258,7 @@
       "category": "Access Control",
       "requirement": "Role-based access to DPP data",
       "satisfied": true,
-      "evidence": "OpenZeppelin AccessControl with 7 roles (validated in 03-security-analysis)"
+      "evidence": "OpenZeppelin AccessControl with 8 roles (validated in 03-security-analysis)"
     },
     {
       "id": "R15",
@@ -274,7 +274,7 @@
       "category": "Interoperability",
       "requirement": "Cross-system interoperability",
       "satisfied": true,
-      "evidence": "SATP lock/mint/assign/burn + restoreCrossChainData (validated in cross-chain demo)"
+      "evidence": "SATP lock/mint/assign/burn + importCrossChainData (validated in cross-chain demo)"
     },
     {
       "id": "R17",

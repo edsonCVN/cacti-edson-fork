@@ -4,7 +4,7 @@
  * API gateway for chain 2 (port 8546).
  * - Read endpoints: list / inspect DPPs received via SATP
  * - Write endpoints: supply-chain actions for chain-2 participants
- * - Cross-chain transfer: chain 2 → chain 1 via SATP gateway-2 (port 4110)
+ * - Cross-chain transfer: chain 2 -> chain 1 via SATP gateway-2 (port 4110)
  *
  * Run AFTER deploy-dpp.js:
  *   npx ts-node --project tsconfig.hardhat.json scripts/launch-api-chain2.ts
@@ -25,7 +25,7 @@ const SATP_GATEWAY_2  = "http://localhost:4110";
 const CHAIN1_API      = "http://127.0.0.1:3002";
 const DPP_API_BASE    = "/api/v1/@hyperledger/cactus-plugin-dpp";
 
-// Gateway-2 EOA signer — deploys SATPWrapper at nonce 0 (no prior txs on chain 2)
+// Gateway-2 EOA signer - deploys SATPWrapper at nonce 0 (no prior txs on chain 2)
 const GATEWAY_SIGNER_2 = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
 const SATP_WRAPPER_2   = ethers.utils.getContractAddress({ from: GATEWAY_SIGNER_2, nonce: 0 });
 
@@ -35,7 +35,7 @@ const ERC721_APPROVAL_ABI = [
   "function isApprovedForAll(address owner, address operator) view returns (bool)",
 ];
 
-// ─── Background metadata sync (chain 2 → chain 1 after SATP completes) ──────
+// ─── Background metadata sync (chain 2 -> chain 1 after SATP completes) ──────
 
 async function syncMetadataToChain1(
   sessionId: string,
@@ -64,7 +64,7 @@ async function syncMetadataToChain1(
       const sub = st?.substatus?.toUpperCase();
       if (s === "DONE" || sub === "COMPLETED") break;
       if (s === "FAILED" || s === "INVALID") {
-        console.error(`[metadata-sync] Session ${sessionId} failed — skipping metadata sync`);
+        console.error(`[metadata-sync] Session ${sessionId} failed - skipping metadata sync`);
         return;
       }
     } catch { /* keep polling */ }
@@ -107,18 +107,18 @@ async function main() {
     await allSigners[4].getAddress();
     console.log(`Connected to chain 2 at ${rpcUrl}`);
   } catch {
-    console.error("Could not connect to chain 2 — run 'npx hardhat node --port 8546' first.");
+    console.error("Could not connect to chain 2 - run 'npx hardhat node --port 8546' first.");
     process.exit(1);
   }
 
   // ── Resolve contract address from deployed-addresses.json ─────────────────
   if (!fs.existsSync(ADDRESSES_FILE)) {
-    console.error("deployed-addresses.json not found — run 'node scripts/deploy-dpp.js' first.");
+    console.error("deployed-addresses.json not found - run 'node scripts/deploy-dpp.js' first.");
     process.exit(1);
   }
   const deployed = JSON.parse(fs.readFileSync(ADDRESSES_FILE, "utf8"));
   if (!deployed.chain2) {
-    console.error("chain2 entry missing in deployed-addresses.json — run 'node scripts/deploy-dpp.js' first.");
+    console.error("chain2 entry missing in deployed-addresses.json - run 'node scripts/deploy-dpp.js' first.");
     process.exit(1);
   }
 
@@ -166,7 +166,7 @@ async function main() {
   // Restore full DPP data after cross-chain transfer (called by source chain's sync)
   app.post(`${base}/restore-cross-chain-data`, async (req, res) => {
     try {
-      res.json(await leaf.restoreCrossChainData({
+      res.json(await leaf.importCrossChainData({
         dppId: req.body.dppId,
         productName: req.body.productName,
         creationDate: req.body.creationDate,
@@ -219,7 +219,7 @@ async function main() {
     catch (e: any) { res.status(500).json({ error: e.message }); }
   });
 
-  // ── Cross-chain transfer (chain 2 → chain 1 via SATP gateway-2) ─────────────
+  // ── Cross-chain transfer (chain 2 -> chain 1 via SATP gateway-2) ─────────────
   app.post(`${base}/cross-chain-transfer`, async (req, res) => {
     try {
       const deployed2 = JSON.parse(fs.readFileSync(ADDRESSES_FILE, "utf8"));

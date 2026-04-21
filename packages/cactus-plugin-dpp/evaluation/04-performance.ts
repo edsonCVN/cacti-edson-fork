@@ -1,5 +1,5 @@
 /**
- * 04-performance.ts — Performance & Scalability Analysis
+ * 04-performance.ts - Performance & Scalability Analysis
  *
  * Measures throughput, latency, and scalability of the DPP system.
  *
@@ -57,7 +57,7 @@ function stats(label: string, times: number[]): LatencyResult {
 }
 
 async function main() {
-  section("5.4 — Performance & Scalability Analysis");
+  section("5.4 - Performance & Scalability Analysis");
   const env = await deploy();
   const { contract, farmer, processor, transporter, retailer } = env;
 
@@ -177,7 +177,7 @@ async function main() {
     },
   });
 
-  // getDPPData (read — no tx)
+  // getDPPData (read - no tx)
   operations.push({
     name: "getDPPData (read)",
     fn: async () => {
@@ -211,7 +211,9 @@ async function main() {
 
   section("Test 3: Scalability Curve");
 
-  const scalePoints = [10, 50, 100, 200];
+  // Logarithmic scale spans four orders of magnitude to demonstrate
+  // flat (O(1)) access complexity across realistic supply-chain volumes.
+  const scalePoints = [10, 100, 1000, 10000];
   const scaleCurve: {
     dppCount: number;
     readLatencyMs: number;
@@ -221,28 +223,45 @@ async function main() {
   // We already have MINT_COUNT DPPs. Create more to reach each scale point.
   let currentCount = MINT_COUNT + nextToken - MINT_COUNT;
   info(`Starting with ~${currentCount} DPPs on-chain`);
+  info(`Target scale points: ${scalePoints.join(", ")} DPPs`);
+  info(`Note: reaching 10k DPPs takes ~10 minutes on a local node.`);
 
+  const SCALE_SAMPLES = 20;
   for (const target of scalePoints) {
-    // Mint up to target if needed
-    while (currentCount < target) {
-      const tx = await contract
-        .connect(farmer)
-        .createDPP(farmerAddr, `Scale #${currentCount}`, "2025-06-15", minMeta);
-      await tx.wait();
-      currentCount++;
+    // Mint up to target if needed (with periodic progress logs)
+    const toMint = target - currentCount;
+    if (toMint > 0) {
+      info(`Minting ${toMint} DPPs to reach ${target}...`);
+      const bulkStart = Date.now();
+      for (let i = 0; i < toMint; i++) {
+        const tx = await contract
+          .connect(farmer)
+          .createDPP(
+            farmerAddr,
+            `Scale #${currentCount}`,
+            "2025-06-15",
+            minMeta,
+          );
+        await tx.wait();
+        currentCount++;
+        if ((i + 1) % 500 === 0) {
+          const elapsedS = (Date.now() - bulkStart) / 1000;
+          info(`  ${i + 1}/${toMint} done (${elapsedS.toFixed(0)}s elapsed)`);
+        }
+      }
     }
 
-    // Measure read latency (getDPPData on token 0)
+    // Measure read latency (getDPPData on token 0, same slot every time)
     const readTimes: number[] = [];
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < SCALE_SAMPLES; i++) {
       const t0 = Date.now();
       await contract.getDPPData(0);
       readTimes.push(Date.now() - t0);
     }
 
-    // Measure write latency (createDPP)
+    // Measure write latency (createDPP at current scale)
     const writeTimes: number[] = [];
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < SCALE_SAMPLES; i++) {
       const t0 = Date.now();
       const tx = await contract
         .connect(farmer)
@@ -329,7 +348,7 @@ async function main() {
       );
     }
   } else {
-    info("\n[Skipped] Cross-chain latency — SATP services not available");
+    info("\n[Skipped] Cross-chain latency - SATP services not available");
     info(
       "Start both API gateways + SATP Hermes for cross-chain measurements\n",
     );
@@ -372,7 +391,7 @@ async function main() {
     crossChainLatencies:
       crossChainLatencies.length > 0
         ? crossChainLatencies
-        : "SATP not available — skipped",
+        : "SATP not available - skipped",
   });
 
   pass("Performance analysis complete!");

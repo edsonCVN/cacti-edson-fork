@@ -126,7 +126,7 @@ export class EVMDPPLeaf extends DPPAbstract {
     "function assign(address to, uint256 uniqueDescriptor) external returns (bool)",
     "function grantBridgeRole(address account) external returns (bool)",
     "function hasBridgeRole(address account) external view returns (bool)",
-    "function restoreCrossChainData(uint256 tokenId, string memory productName, string memory creationDate, string memory metadataURI, string[] memory certs, string[] memory historyEntries) public",
+    "function importCrossChainData(uint256 tokenId, string memory productName, string memory creationDate, string memory metadataURI, string[] memory certs, string[] memory historyEntries) public",
     // ERC721 events (required for queryFilter / filters)
     "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)",
   ];
@@ -250,7 +250,7 @@ export class EVMDPPLeaf extends DPPAbstract {
               : pd.ipfsUri;
           Object.assign(metadataObj, parsed);
         } catch (_) {
-          // ipfsUri is not JSON — keep metadataObj as-is
+          // ipfsUri is not JSON - keep metadataObj as-is
         }
       }
 
@@ -372,7 +372,7 @@ export class EVMDPPLeaf extends DPPAbstract {
    * transfer.  Writes productName, creationDate, metadata URI, certifications,
    * and the complete source-chain history in a single transaction.
    */
-  public async restoreCrossChainData(args: {
+  public async importCrossChainData(args: {
     dppId: string;
     productName: string;
     creationDate: string;
@@ -380,9 +380,9 @@ export class EVMDPPLeaf extends DPPAbstract {
     certifications: string[];
     history: string[];
   }): Promise<GenericResponse> {
-    this.log.debug(`restoreCrossChainData called for DPP: ${args.dppId}`);
+    this.log.debug(`importCrossChainData called for DPP: ${args.dppId}`);
     try {
-      const tx = await this.dppContract.restoreCrossChainData(
+      const tx = await this.dppContract.importCrossChainData(
         args.dppId,
         args.productName,
         args.creationDate,
@@ -396,13 +396,13 @@ export class EVMDPPLeaf extends DPPAbstract {
         tx.hash,
       );
     } catch (error: any) {
-      this.log.error(`restoreCrossChainData exception: ${error.message}`);
+      this.log.error(`importCrossChainData exception: ${error.message}`);
       throw new Error(`Failed to restore cross-chain data: ${error.message}`);
     }
   }
 
   /**
-   * Returns the raw on-chain history entries for a single token — no merging
+   * Returns the raw on-chain history entries for a single token - no merging
    * of children or origin histories.  Used by the cross-chain snapshot to
    * avoid duplicating inherited events on repeated transfers.
    */
@@ -470,11 +470,11 @@ export class EVMDPPLeaf extends DPPAbstract {
               }
             }
           } catch {
-            // Child history not readable (burned token) — skip
+            // Child history not readable (burned token) - skip
           }
         }
       } catch {
-        // No components — not an aggregated DPP, skip
+        // No components - not an aggregated DPP, skip
       }
 
       // If this is a split child, inherit the origin's history first
@@ -532,7 +532,7 @@ export class EVMDPPLeaf extends DPPAbstract {
           }
         }
       } catch {
-        /* getDPPData failed — skip inheritance */
+        /* getDPPData failed - skip inheritance */
       }
 
       // Add this DPP's own history
@@ -841,7 +841,7 @@ export class EVMDPPLeaf extends DPPAbstract {
         try {
           publicData = JSON.parse(existingURI);
         } catch {
-          // Existing URI is not JSON (e.g. IPFS CID) — wrap it to preserve it
+          // Existing URI is not JSON (e.g. IPFS CID) - wrap it to preserve it
           publicData = { originalMetadataURI: existingURI };
         }
 
@@ -905,7 +905,7 @@ export class EVMDPPLeaf extends DPPAbstract {
           try {
             publicData = JSON.parse(existingURI);
           } catch {
-            // Existing URI is not JSON (e.g. IPFS CID) — wrap it to preserve it
+            // Existing URI is not JSON (e.g. IPFS CID) - wrap it to preserve it
             publicData = { originalMetadataURI: existingURI };
           }
           if (shelfLife) publicData.shelfLife = shelfLife;
@@ -1086,7 +1086,7 @@ export class EVMDPPLeaf extends DPPAbstract {
 
     for (const tokenId of tokenIds) {
       try {
-        // ownerOf reverts for burned tokens — skip them
+        // ownerOf reverts for burned tokens - skip them
         const owner = await this.dppContract.ownerOf(tokenId);
         const dataResponse = await this.getDPPData({ dppId: tokenId });
 
@@ -1103,7 +1103,7 @@ export class EVMDPPLeaf extends DPPAbstract {
           image: pub.image || "",
         });
       } catch {
-        // burned or non-existent — skip
+        // burned or non-existent - skip
       }
     }
 
@@ -1159,7 +1159,7 @@ export class EVMDPPLeaf extends DPPAbstract {
           image: publicData.image || "",
         });
       } catch {
-        // truly non-existent — skip
+        // truly non-existent - skip
       }
     }
 

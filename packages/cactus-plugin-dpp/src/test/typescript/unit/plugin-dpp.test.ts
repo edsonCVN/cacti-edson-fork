@@ -70,7 +70,7 @@ afterAll(async () => {
 // Plugin initialisation
 // ---------------------------------------------------------------------------
 
-describe("PluginDpp — initialisation", () => {
+describe("PluginDpp - initialisation", () => {
   test("getInstanceId returns the id passed in the constructor", () => {
     expect(connector.getInstanceId()).toBeDefined();
     expect(typeof connector.getInstanceId()).toBe("string");
@@ -87,7 +87,7 @@ describe("PluginDpp — initialisation", () => {
     expect(endpoints.length).toBeGreaterThan(0);
   });
 
-  test("getOrCreateWebServices is idempotent — same array on repeated calls", async () => {
+  test("getOrCreateWebServices is idempotent - same array on repeated calls", async () => {
     const first  = await connector.getOrCreateWebServices();
     const second = await connector.getOrCreateWebServices();
     expect(first).toBe(second);
@@ -101,10 +101,10 @@ describe("PluginDpp — initialisation", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Farmer API — DPP creation
+// Farmer API - DPP creation
 // ---------------------------------------------------------------------------
 
-describe("FarmerApi — POST /create", () => {
+describe("FarmerApi - POST /create", () => {
   test("creates a DPP and returns dppId + txHash", async () => {
     const res = await farmerApi.createDPP({
       owner: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
@@ -131,10 +131,10 @@ describe("FarmerApi — POST /create", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Audit API — history
+// Audit API - history
 // ---------------------------------------------------------------------------
 
-describe("AuditApi — GET /history/:dppId", () => {
+describe("AuditApi - GET /history/:dppId", () => {
   test("returns history array for a valid dppId", async () => {
     const res = await auditApi.getDPPHistory("dpp-001");
     expect(res.status).toEqual(200);
@@ -143,10 +143,10 @@ describe("AuditApi — GET /history/:dppId", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Logistics API — transport update
+// Logistics API - transport update
 // ---------------------------------------------------------------------------
 
-describe("LogisticsApi — POST /update-transport-data", () => {
+describe("LogisticsApi - POST /update-transport-data", () => {
   test("accepts transport data and returns 200", async () => {
     const res = await logisticsApi.updateTransportData({
       dppId: "dpp-001",
@@ -162,10 +162,10 @@ describe("LogisticsApi — POST /update-transport-data", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Processor API — aggregation
+// Processor API - aggregation
 // ---------------------------------------------------------------------------
 
-describe("ProcessorApi — POST /aggregate", () => {
+describe("ProcessorApi - POST /aggregate", () => {
   test("accepts an aggregate request and returns 200", async () => {
     const res = await processorApi.aggregateDPP({
       parentList:     ["1", "2", "3"],
@@ -177,10 +177,10 @@ describe("ProcessorApi — POST /aggregate", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Ownership API — transfer
+// Ownership API - transfer
 // ---------------------------------------------------------------------------
 
-describe("OwnershipApi — POST /transfer", () => {
+describe("OwnershipApi - POST /transfer", () => {
   test("accepts a transfer request and returns 200", async () => {
     const res = await ownershipApi.transferDPP({
       dppId: "dpp-001",

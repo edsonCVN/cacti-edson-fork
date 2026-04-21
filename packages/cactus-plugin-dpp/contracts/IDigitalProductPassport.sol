@@ -5,7 +5,7 @@ pragma solidity ^0.8.24;
  * @title IDigitalProductPassport
  * @notice Interface for the Digital Product Passport (DPP) smart contract.
  * @dev Outlines the data structures, events, and external methods required for
- *      managing the full lifecycle of a DPP — from creation, through the supply
+ *      managing the full lifecycle of a DPP - from creation, through the supply
  *      chain (transport, processing, retail), to revocation and SATP cross-chain
  *      bridging operations.
  */
@@ -38,7 +38,7 @@ interface IDigitalProductPassport {
   }
 
   // ============================================================
-  //  Events — Supply-chain lifecycle
+  //  Events - Supply-chain lifecycle
   // ============================================================
 
   /// @notice Emitted when a new DPP token is minted.
@@ -63,7 +63,7 @@ interface IDigitalProductPassport {
   event DPPTransferred(uint256 indexed tokenId, address indexed from, address indexed to);
 
   // ============================================================
-  //  Events — SATP cross-chain bridge
+  //  Events - SATP cross-chain bridge
   // ============================================================
 
   /// @notice Emitted when a DPP is locked for cross-chain transfer.
@@ -129,7 +129,7 @@ interface IDigitalProductPassport {
   ) external;
 
   /**
-   * @notice Marks a DPP as received by the retailer (state → RECEIVED).
+   * @notice Marks a DPP as received by the retailer (state -> RECEIVED).
    * @param tokenId The DPP token to mark.
    */
   function markAsReceived(uint256 tokenId) external;

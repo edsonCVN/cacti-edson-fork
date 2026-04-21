@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-03-25T21:02:41.203Z",
+  "timestamp": "2026-04-21T13:58:37.183Z",
   "ethPriceUSD": 2500,
   "gasPricesGwei": {
     "Ethereum L1": 30,
@@ -9,100 +9,100 @@
   "operations": [
     {
       "operation": "createDPP (minimal)",
-      "gasUsed": 362779,
-      "txHash": "0x41c0aec02869899ddaa29d11a2937de5357bc8a6cf6dd44a29fa809f2309348d"
+      "gasUsed": 362789,
+      "txHash": "0x0f4dfbc00ed141f295c95287022c0f798ed0c147c66d22e60c1010f68820f096"
     },
     {
       "operation": "createDPP (full metadata)",
-      "gasUsed": 919210,
-      "txHash": "0x2a98d4bb410ba1769fad0561a87c18218a5bd5c8d83bcb044a01c6714dcf5eab"
+      "gasUsed": 919220,
+      "txHash": "0x864bfdc2aac9924225d8643d583a96ebea23ab3f9d167fa56d3b40bbbc9cbf92"
     },
     {
       "operation": "amendDPPData",
-      "gasUsed": 290761,
-      "txHash": "0xeaa9958eee1eda99107ead3bb3bb73c6a98ed8c55ac78b8108f59de908a73d40"
+      "gasUsed": 290739,
+      "txHash": "0xbd424a2751b929edc30beda4d277565bed02e9f063789307436b685a121f8726"
     },
     {
       "operation": "addCertification",
       "gasUsed": 254143,
-      "txHash": "0x98d14829a2ccdc769813e3423d8706d1f35d2ee1907dccc11ef3da08a4bbb581"
+      "txHash": "0xcd682203488b2458152bcb10b5c3a0d90f0b5588cbaa277763b68ab776d6ac91"
     },
     {
       "operation": "updateTransportData",
-      "gasUsed": 298379,
-      "txHash": "0x0a2277c00bc5eab478842c4f53413f884352cacb52ce4a21a9654740cede9144"
+      "gasUsed": 298499,
+      "txHash": "0x878c98d52a41d70bfc04334b8eb3ce9d81603e22292e4996e232ba234775e32e"
     },
     {
       "operation": "markAsReceived",
       "gasUsed": 140340,
-      "txHash": "0xd4f55e143945ce161c79d06d9ead4696ba57260ffa55efabd52a5d2a5514888c"
+      "txHash": "0xe1db59f6017c9e53f3b092eed5fa7f2a87651829591a30edcd50c32a2289cbf6"
     },
     {
       "operation": "updateRetailData",
-      "gasUsed": 143394,
-      "txHash": "0x15757d1ce1d647d72ebb910d73348a612fea4753fd3d980be79f530959aee0e9"
+      "gasUsed": 143372,
+      "txHash": "0x04bcf0293c4d779c5cb0cbacdaaf67ada2ef0c91ee6531c9b2594b709482b738"
     },
     {
       "operation": "transferDPP",
       "gasUsed": 171858,
-      "txHash": "0x5ea5856c8de076e1bf66a083cd0bc7b6b9a1aa8d40db996f09ff051b040d7d18"
+      "txHash": "0x30ec45b56be9cc195f5f904067c05fe1fc189cd2bf926c7cab9cd20c05337fa2"
     },
     {
       "operation": "aggregateDPPs (3 children)",
       "gasUsed": 828003,
-      "txHash": "0x61d131901a79bd1237056ac85a11d687a085c98713fec498a2adab1ea16df4ee"
+      "txHash": "0x3bcc18b24d03e821600453b5f3aa328d070a722258d4af0ae4f5671d0ed21923"
     },
     {
       "operation": "disaggregateDPP (into 3)",
-      "gasUsed": 1002621,
-      "txHash": "0xecd7abb21176c3c7e48aeb876d365ac54e617c0dbcc0d3b97d49fc656505184d"
+      "gasUsed": 1002653,
+      "txHash": "0x560f391e8452ea3af4ca1ccf95fb2da15384f7c4bb4254f43ec93e67d8367c3c"
     },
     {
       "operation": "revokeDPP",
-      "gasUsed": 157315,
-      "txHash": "0x6ecec609fb5d74a78752ded581dea6e0f0e26c9b3c831e72aab83545820d051a"
+      "gasUsed": 157293,
+      "txHash": "0x0959b98af2d2ca9a02af63fe515c525f87fbba62dd6a4a82f88966a0a4338746"
     },
     {
-      "operation": "restoreCrossChainData (2 history + 2 certs)",
-      "gasUsed": 971427,
-      "txHash": "0x9d74226b59acb2b6a996ce98ec20396f989e8f0e44d9620ef36954451eee1afa"
+      "operation": "importCrossChainData (2 history + 2 certs)",
+      "gasUsed": 976321,
+      "txHash": "0xf3e334088301e5415c97c492bd0e143a11f5b662de1f66e212baab819c87f6b7"
     },
     {
       "operation": "lock (SATP Phase 1)",
       "gasUsed": 192526,
-      "txHash": "0x6a068838ba7ba327efab7670960df06f5f19df524a8622aab824d12df156dea9"
+      "txHash": "0x8a301646a07a1025fbe94ad790f019f9a0f4148dd05b5cdf5b3280fe62cf077e"
     },
     {
       "operation": "burn (SATP Phase 3)",
       "gasUsed": 143325,
-      "txHash": "0x3f45e2e41ba6c52991b6993a2fa5079b2480de511e31ff6933b47a04594dc55d"
+      "txHash": "0x46d10b8656acab3beb70eaeefea7bd3a3caf2600cb0c9bd1b55ad6af7d126556"
     },
     {
       "operation": "assign (SATP Phase 3)",
       "gasUsed": 171761,
-      "txHash": "0xb9064af6aa5b9d997b5d78f64d1d5e215eaf6bf340c9169e12903961d4e7cade"
+      "txHash": "0x30ef284089e54acedb82477191f7fb7f2b9511c02b713c69782740afdc5fae4f"
     }
   ],
-  "totalGas": 6047842,
+  "totalGas": 6052842,
   "summary": [
     {
       "Operation": "createDPP (minimal)",
-      "Gas Used": "362,779",
-      "Ethereum L1": "$27.2084",
+      "Gas Used": "362,789",
+      "Ethereum L1": "$27.2092",
       "Polygon PoS": "$0.0091",
       "Arbitrum L2": "$0.0907"
     },
     {
       "Operation": "createDPP (full metadata)",
-      "Gas Used": "919,210",
-      "Ethereum L1": "$68.9408",
+      "Gas Used": "919,220",
+      "Ethereum L1": "$68.9415",
       "Polygon PoS": "$0.0230",
       "Arbitrum L2": "$0.2298"
     },
     {
       "Operation": "amendDPPData",
-      "Gas Used": "290,761",
-      "Ethereum L1": "$21.8071",
+      "Gas Used": "290,739",
+      "Ethereum L1": "$21.8054",
       "Polygon PoS": "$0.0073",
       "Arbitrum L2": "$0.0727"
     },
@@ -115,8 +115,8 @@
     },
     {
       "Operation": "updateTransportData",
-      "Gas Used": "298,379",
-      "Ethereum L1": "$22.3784",
+      "Gas Used": "298,499",
+      "Ethereum L1": "$22.3874",
       "Polygon PoS": "$0.0075",
       "Arbitrum L2": "$0.0746"
     },
@@ -129,8 +129,8 @@
     },
     {
       "Operation": "updateRetailData",
-      "Gas Used": "143,394",
-      "Ethereum L1": "$10.7546",
+      "Gas Used": "143,372",
+      "Ethereum L1": "$10.7529",
       "Polygon PoS": "$0.0036",
       "Arbitrum L2": "$0.0358"
     },
@@ -150,24 +150,24 @@
     },
     {
       "Operation": "disaggregateDPP (into 3)",
-      "Gas Used": "1,002,621",
-      "Ethereum L1": "$75.1966",
+      "Gas Used": "1,002,653",
+      "Ethereum L1": "$75.1990",
       "Polygon PoS": "$0.0251",
       "Arbitrum L2": "$0.2507"
     },
     {
       "Operation": "revokeDPP",
-      "Gas Used": "157,315",
-      "Ethereum L1": "$11.7986",
+      "Gas Used": "157,293",
+      "Ethereum L1": "$11.7970",
       "Polygon PoS": "$0.0039",
       "Arbitrum L2": "$0.0393"
     },
     {
-      "Operation": "restoreCrossChainData (2 history + 2 certs)",
-      "Gas Used": "971,427",
-      "Ethereum L1": "$72.8570",
-      "Polygon PoS": "$0.0243",
-      "Arbitrum L2": "$0.2429"
+      "Operation": "importCrossChainData (2 history + 2 certs)",
+      "Gas Used": "976,321",
+      "Ethereum L1": "$73.2241",
+      "Polygon PoS": "$0.0244",
+      "Arbitrum L2": "$0.2441"
     },
     {
       "Operation": "lock (SATP Phase 1)",
