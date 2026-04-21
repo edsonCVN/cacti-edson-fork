@@ -31,7 +31,7 @@ A Digital Product Passport is an ERC-721 NFT that carries structured metadata ab
                                ▼                          ▼
                     ┌──────────────────┐    ┌───────────────────────┐
                     │  Chain 1         │    │  SATP Hermes Gateway-1│
-                    │  EVM Local Node │    │  Port 4010            │
+                    │  EVM Local Node  │    │  Port 4010            │
                     │  Port 8545       │    └───────────┬───────────┘
                     └──────────────────┘                │ SATP protocol
                                                         ▼
@@ -49,7 +49,7 @@ A Digital Product Passport is an ERC-721 NFT that carries structured metadata ab
                                             ▼
                                  ┌──────────────────┐
                                  │  Chain 2         │
-                                 │  EVM Local Node │
+                                 │  EVM Local Node  │
                                  │  Port 8546       │
                                  └──────────────────┘
 
