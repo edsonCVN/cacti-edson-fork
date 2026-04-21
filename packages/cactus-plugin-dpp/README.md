@@ -564,6 +564,61 @@ When a DPP is disaggregated (split):
 
 > **Note**: Chain 1 uses Hardhat accounts 0–3; chain 2 uses accounts 4–5 as deployer/receiver to avoid address conflicts between signers in the same test environment.
 
+## Hyperledger Fabric (branch `feat/fabric-chain`)
+
+The `feat/fabric-chain` branch adds a Fabric port of the DPP contract as a TypeScript chaincode, plus a REST API, SATP ontology and a third Hermes Gateway wired against `fabric-samples/test-network`.
+
+### Layout
+
+- `fabric-chaincode/`: TypeScript chaincode with the 8 roles, 6 lifecycle states, `importCrossChainData` and pre-lock state restoration. Role-based access uses the `role` client-identity attribute.
+- `contracts/ontologies/ontology-dpp-hyperledger-fabric.json`: SATP `FABRIC_2` ontology (`DPP-FABRIC-HLF2`).
+- `src/main/typescript/implementations/fabric-dpp-leaf.ts`: TypeScript client on top of the Cacti Fabric connector.
+- `scripts/fabric/deploy-fabric-chaincode.sh`: wrapper around `network.sh deployCC`.
+- `scripts/fabric/register-role-user.sh`: enrolls a CA user with a `role` attribute.
+- `scripts/fabric/launch-api-fabric.ts`: REST API on port 3004 using `@hyperledger/fabric-gateway`.
+- `scripts/fabric/build-gateway-3-config.js`: builds `gateway-3-config.json` from the material in `gateway/fabric-bridge/`.
+- `gateway/config/gateway-3-config.json`, `gateway/docker-compose.yaml`, `gateway/otel-config.yaml`: third SATP Hermes Gateway on ports 3210/3211/4210 with per-gateway OTel collector sidecars.
+- `evaluation/07-fabric-crosschain-e2e.ts`: EVM to Fabric SATP test.
+
+### Running
+
+```bash
+# install fabric-samples + binaries
+mkdir -p ~/fabric && cd ~/fabric && \
+  curl -sSL https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh | \
+  bash -s -- --fabric-version 2.5.6 --ca-version 1.5.6 binary samples
+
+docker pull hyperledger/fabric-nodeenv:2.5
+
+# start network
+cd ~/fabric/fabric-samples/test-network
+./network.sh up createChannel -c mychannel -ca
+
+# deploy chaincode
+cd -
+FABRIC_SAMPLES=$HOME/fabric/fabric-samples \
+  ./packages/cactus-plugin-dpp/scripts/fabric/deploy-fabric-chaincode.sh
+
+# enroll a farmer
+./packages/cactus-plugin-dpp/scripts/fabric/register-role-user.sh farmer1 FARMER
+
+# REST API
+cd packages/cactus-plugin-dpp
+FABRIC_USER_ID=farmer1 npx ts-node --project tsconfig.hardhat.json scripts/fabric/launch-api-fabric.ts
+
+curl -sX POST http://localhost:3004/dpp/create -H 'Content-Type: application/json' \
+  -d '{"to":"user2","productName":"Test Oil","creationDate":"2026-04-21","metadataURI":"ipfs://test"}'
+curl -s http://localhost:3004/dpp/1
+```
+
+On Apple Silicon the Cacti `fabric-all-in-one` image does not boot (zero-byte image configs in the layer), so the `fabric-samples` test-network is used directly.
+
+### Status
+
+Chaincode lifecycle and SATP bridge operations (lock, unlock, mint, burn, assign, importCrossChainData) are validated against the running Fabric network via both `peer` CLI and the REST API. The three-gateway SATP topology boots, gateway-3 registers `FABRIC_2` as a DLT, and the EVM-to-Fabric handshake completes up to `PreSATPTransferRequest`.
+
+The SATP transfer stops at the wrap step because Cacti's current `FabricLeaf.wrapAsset` rejects NFT assets (`throw new Error("Fabric does not support non fungible tokens yet")`, `fabric-leaf.ts:863` and `:1267`). Extending that path for NFTs is an upstream Cacti change and is out of scope for this branch.
+
 ## License
 
 Apache-2.0

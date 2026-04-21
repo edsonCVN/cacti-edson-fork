@@ -1,0 +1,243 @@
+{
+  "gid": {
+    "id": "dpp-gateway-3",
+    "name": "DPPGateway",
+    "version": [
+      {
+        "Core": "v02",
+        "Architecture": "v02",
+        "Crash": "v02"
+      }
+    ],
+    "connectedDLTs": [
+      {
+        "id": "FabricLedgerTestNetwork",
+        "ledgerType": "FABRIC_2"
+      }
+    ],
+    "proofID": "dppProofID3",
+    "address": "http://satp-hermes-gateway-3",
+    "gatewayClientPort": 3011,
+    "gatewayServerPort": 3010,
+    "gatewayOapiPort": 4010,
+    "identificationCredential": {
+      "signingAlgorithm": "SECP256K1",
+      "pubKey": "02e5310a75ea540587a4e504e1948da07bdb175742c079e76165fa5cd1f9408631"
+    }
+  },
+  "logLevel": "TRACE",
+  "counterPartyGateways": [
+    {
+      "id": "dpp-gateway-1",
+      "name": "DPPGateway",
+      "version": [
+        {
+          "Core": "v02",
+          "Architecture": "v02",
+          "Crash": "v02"
+        }
+      ],
+      "connectedDLTs": [
+        {
+          "id": "EthereumLedgerTestNetwork1",
+          "ledgerType": "ETHEREUM"
+        }
+      ],
+      "proofID": "dppProofID1",
+      "address": "http://satp-hermes-gateway-1",
+      "gatewayClientPort": 3011,
+      "gatewayServerPort": 3010,
+      "gatewayOapiPort": 4010,
+      "identificationCredential": {
+        "signingAlgorithm": "SECP256K1",
+        "pubKey": "036256069f81bcaae52a64965b8add79521ee54cb2ad3d85de5250d78cf0fc171c"
+      }
+    },
+    {
+      "id": "dpp-gateway-2",
+      "name": "DPPGateway",
+      "version": [
+        {
+          "Core": "v02",
+          "Architecture": "v02",
+          "Crash": "v02"
+        }
+      ],
+      "connectedDLTs": [
+        {
+          "id": "EthereumLedgerTestNetwork2",
+          "ledgerType": "ETHEREUM"
+        }
+      ],
+      "proofID": "dppProofID2",
+      "address": "http://satp-hermes-gateway-2",
+      "gatewayClientPort": 3011,
+      "gatewayServerPort": 3010,
+      "gatewayOapiPort": 4010,
+      "identificationCredential": {
+        "signingAlgorithm": "SECP256K1",
+        "pubKey": "024c0cf54f92d23dbb3d409a8047aa2a44abcb911767d3516b19fd94c2358dec65"
+      }
+    }
+  ],
+  "environment": "development",
+  "ccConfig": {
+    "bridgeConfig": [
+      {
+        "networkIdentification": {
+          "id": "FabricLedgerTestNetwork",
+          "ledgerType": "FABRIC_2"
+        },
+        "userIdentity": {
+          "credentials": {
+            "certificate": "-----BEGIN CERTIFICATE-----\nMIICfzCCAiagAwIBAgIUaMCxhROsteJsWJsEQVBxWUaC8p0wCgYIKoZIzj0EAwIw\ncDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMQ8wDQYDVQQH\nEwZEdXJoYW0xGTAXBgNVBAoTEG9yZzEuZXhhbXBsZS5jb20xHDAaBgNVBAMTE2Nh\nLm9yZzEuZXhhbXBsZS5jb20wHhcNMjYwNDIxMTgxMjAwWhcNMjcwNDIxMTg1NTAw\nWjBeMQswCQYDVQQGEwJVUzEXMBUGA1UECBMOTm9ydGggQ2Fyb2xpbmExFDASBgNV\nBAoTC0h5cGVybGVkZ2VyMQ8wDQYDVQQLEwZjbGllbnQxDzANBgNVBAMTBmJyaWRn\nZTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABFl8Zr55FPGQgfRsK2j1Py/lZutd\n6c0OzbyeK/EV/H31/af6wSl+HwxBACUPpqSLLddKngcIMP0T0/88l4aWHFWjga8w\ngawwDgYDVR0PAQH/BAQDAgeAMAwGA1UdEwEB/wQCMAAwHQYDVR0OBBYEFEptZ+DD\ndlJUfwsxvPKg03AupPZ+MB8GA1UdIwQYMBaAFDifSWE1q8ZjpWwwLff0g6QF/DZ0\nMCMGA1UdEQQcMBqCGEVkc29ucy1NYWNCb29rLVByby5sb2NhbDAnBggqAwQFBgcI\nAQQbeyJhdHRycyI6eyJyb2xlIjoiQlJJREdFIn19MAoGCCqGSM49BAMCA0cAMEQC\nICXboOQOe9AYGEBfGaSlY1O+cSKtmt7Uo9rp+LPd8odlAiADysFOUyshKnnGMkAX\nOHjkcXvtI4MiuXJPg6jWjSECMQ==\n-----END CERTIFICATE-----\n",
+            "privateKey": "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgg7KqE6hYUIG0gwzn\ny9nSf4LzuKzTQJ1iWRQ45D5iaaGhRANCAARZfGa+eRTxkIH0bCto9T8v5WbrXenN\nDs28nivxFfx99f2n+sEpfh8MQQAlD6akiy3XSp4HCDD9E9P/PJeGlhxV\n-----END PRIVATE KEY-----\n"
+          },
+          "mspId": "Org1MSP",
+          "type": "X.509"
+        },
+        "connectorOptions": {
+          "connectionProfile": {
+            "name": "test-network-org1",
+            "version": "1.0.0",
+            "client": {
+              "organization": "Org1"
+            },
+            "organizations": {
+              "Org1MSP": {
+                "mspid": "Org1MSP",
+                "peers": [
+                  "peer0.org1.example.com"
+                ],
+                "certificateAuthorities": [
+                  "ca.org1.example.com"
+                ]
+              },
+              "Org2MSP": {
+                "mspid": "Org2MSP",
+                "peers": [
+                  "peer0.org2.example.com"
+                ]
+              }
+            },
+            "peers": {
+              "peer0.org1.example.com": {
+                "url": "grpcs://host.docker.internal:7051",
+                "grpcOptions": {
+                  "ssl-target-name-override": "peer0.org1.example.com"
+                },
+                "tlsCACerts": {
+                  "pem": "-----BEGIN CERTIFICATE-----\nMIICJjCCAc2gAwIBAgIUJ+3e3fs8p/lh46ASr6RJsmvKnlEwCgYIKoZIzj0EAwIw\ncDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMQ8wDQYDVQQH\nEwZEdXJoYW0xGTAXBgNVBAoTEG9yZzEuZXhhbXBsZS5jb20xHDAaBgNVBAMTE2Nh\nLm9yZzEuZXhhbXBsZS5jb20wHhcNMjYwNDIxMTgxMjAwWhcNNDEwNDE3MTgxMjAw\nWjBwMQswCQYDVQQGEwJVUzEXMBUGA1UECBMOTm9ydGggQ2Fyb2xpbmExDzANBgNV\nBAcTBkR1cmhhbTEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEcMBoGA1UEAxMT\nY2Eub3JnMS5leGFtcGxlLmNvbTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABNHx\nWKD+GpyDVeuqq7c12NpUyyCmDB+39rx8C+lsYpTD6cN3oDVHe3OirgxA5DpZw+p2\nWd4y+AF1GxPXSo3fVqGjRTBDMA4GA1UdDwEB/wQEAwIBBjASBgNVHRMBAf8ECDAG\nAQH/AgEBMB0GA1UdDgQWBBQ4n0lhNavGY6VsMC339IOkBfw2dDAKBggqhkjOPQQD\nAgNHADBEAiA8y2hHePcMbV4yLp4EopALAUxz1u2IatkWiI8KSjsHcAIgXZeHh8Gk\nG4UpZbkSX6wILHx1TJC5Vb1kMgAInbsQbfg=\n-----END CERTIFICATE-----\n"
+                }
+              },
+              "peer0.org2.example.com": {
+                "url": "grpcs://host.docker.internal:9051",
+                "grpcOptions": {
+                  "ssl-target-name-override": "peer0.org2.example.com"
+                },
+                "tlsCACerts": {
+                  "pem": "-----BEGIN CERTIFICATE-----\nMIICHzCCAcWgAwIBAgIUbCQp+OkafilpamI237nhEMjx+JMwCgYIKoZIzj0EAwIw\nbDELMAkGA1UEBhMCVUsxEjAQBgNVBAgTCUhhbXBzaGlyZTEQMA4GA1UEBxMHSHVy\nc2xleTEZMBcGA1UEChMQb3JnMi5leGFtcGxlLmNvbTEcMBoGA1UEAxMTY2Eub3Jn\nMi5leGFtcGxlLmNvbTAeFw0yNjA0MjExODEyMDBaFw00MTA0MTcxODEyMDBaMGwx\nCzAJBgNVBAYTAlVLMRIwEAYDVQQIEwlIYW1wc2hpcmUxEDAOBgNVBAcTB0h1cnNs\nZXkxGTAXBgNVBAoTEG9yZzIuZXhhbXBsZS5jb20xHDAaBgNVBAMTE2NhLm9yZzIu\nZXhhbXBsZS5jb20wWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAT96rOhvH3pULLt\n3cF6nLSanjbl+6SQZrPFNqZpLgPjPgx086Ie6yFf8wOZbrLcEj0hS1ZWXkOjDMfr\nvIlIyV2vo0UwQzAOBgNVHQ8BAf8EBAMCAQYwEgYDVR0TAQH/BAgwBgEB/wIBATAd\nBgNVHQ4EFgQUIt2Jlb41G2XXGC3JW0AoMMfTIScwCgYIKoZIzj0EAwIDSAAwRQIh\nAP+ddntRD0UTyIs8AoGrVvWj1qx9HJONFsX0R7r6+41uAiB26VDHDzbnZgAXfZ7c\n26lAamON7BVDPzJsThvImAcXfg==\n-----END CERTIFICATE-----\n"
+                }
+              }
+            },
+            "certificateAuthorities": {
+              "ca.org1.example.com": {
+                "url": "https://host.docker.internal:7054",
+                "caName": "ca-org1",
+                "tlsCACerts": {
+                  "pem": [
+                    "-----BEGIN CERTIFICATE-----\nMIICJjCCAc2gAwIBAgIUJ+3e3fs8p/lh46ASr6RJsmvKnlEwCgYIKoZIzj0EAwIw\ncDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMQ8wDQYDVQQH\nEwZEdXJoYW0xGTAXBgNVBAoTEG9yZzEuZXhhbXBsZS5jb20xHDAaBgNVBAMTE2Nh\nLm9yZzEuZXhhbXBsZS5jb20wHhcNMjYwNDIxMTgxMjAwWhcNNDEwNDE3MTgxMjAw\nWjBwMQswCQYDVQQGEwJVUzEXMBUGA1UECBMOTm9ydGggQ2Fyb2xpbmExDzANBgNV\nBAcTBkR1cmhhbTEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEcMBoGA1UEAxMT\nY2Eub3JnMS5leGFtcGxlLmNvbTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABNHx\nWKD+GpyDVeuqq7c12NpUyyCmDB+39rx8C+lsYpTD6cN3oDVHe3OirgxA5DpZw+p2\nWd4y+AF1GxPXSo3fVqGjRTBDMA4GA1UdDwEB/wQEAwIBBjASBgNVHRMBAf8ECDAG\nAQH/AgEBMB0GA1UdDgQWBBQ4n0lhNavGY6VsMC339IOkBfw2dDAKBggqhkjOPQQD\nAgNHADBEAiA8y2hHePcMbV4yLp4EopALAUxz1u2IatkWiI8KSjsHcAIgXZeHh8Gk\nG4UpZbkSX6wILHx1TJC5Vb1kMgAInbsQbfg=\n-----END CERTIFICATE-----\n"
+                  ]
+                },
+                "httpOptions": {
+                  "verify": false
+                }
+              }
+            },
+            "orderers": {
+              "orderer.example.com": {
+                "url": "grpcs://host.docker.internal:7050",
+                "grpcOptions": {
+                  "ssl-target-name-override": "orderer.example.com"
+                },
+                "tlsCACerts": {
+                  "pem": "-----BEGIN CERTIFICATE-----\nMIICCjCCAbGgAwIBAgIUOZnaP4J5liRiJbsVIJpimb5EtmUwCgYIKoZIzj0EAwIw\nYjELMAkGA1UEBhMCVVMxETAPBgNVBAgTCE5ldyBZb3JrMREwDwYDVQQHEwhOZXcg\nWW9yazEUMBIGA1UEChMLZXhhbXBsZS5jb20xFzAVBgNVBAMTDmNhLmV4YW1wbGUu\nY29tMB4XDTI2MDQyMTE4MTIwMFoXDTQxMDQxNzE4MTIwMFowYjELMAkGA1UEBhMC\nVVMxETAPBgNVBAgTCE5ldyBZb3JrMREwDwYDVQQHEwhOZXcgWW9yazEUMBIGA1UE\nChMLZXhhbXBsZS5jb20xFzAVBgNVBAMTDmNhLmV4YW1wbGUuY29tMFkwEwYHKoZI\nzj0CAQYIKoZIzj0DAQcDQgAEQblsdq4lDhjOA1/MHliwFk4eDEcVwdFyigxDXq9+\n5gnxGjBiLkH+1BfnzUd65n/qEY+O4HOcbAOBkyrMNCUv1KNFMEMwDgYDVR0PAQH/\nBAQDAgEGMBIGA1UdEwEB/wQIMAYBAf8CAQEwHQYDVR0OBBYEFDfm/SBPrNLV/ubc\nyqD6/TJgVvajMAoGCCqGSM49BAMCA0cAMEQCIE6pso/PtCJK5bLBSKRUWURe3oMw\nkS0zME5mPlPAvf3NAiAO5TvQGfd7et4H+oMuL7u7WxfxyYpze1YgxzLoAVCXlQ==\n-----END CERTIFICATE-----\n"
+                }
+              }
+            },
+            "channels": {
+              "mychannel": {
+                "orderers": [
+                  "orderer.example.com"
+                ],
+                "peers": {
+                  "peer0.org1.example.com": {
+                    "endorsingPeer": true,
+                    "chaincodeQuery": true,
+                    "ledgerQuery": true,
+                    "eventSource": true,
+                    "discover": true
+                  },
+                  "peer0.org2.example.com": {
+                    "endorsingPeer": true,
+                    "chaincodeQuery": true,
+                    "ledgerQuery": true,
+                    "eventSource": true,
+                    "discover": true
+                  }
+                }
+              }
+            }
+          },
+          "discoveryOptions": {
+            "enabled": true,
+            "asLocalhost": false
+          },
+          "eventHandlerOptions": {
+            "strategy": "NETWORK_SCOPE_ALLFORTX",
+            "commitTimeout": 300
+          }
+        },
+        "channelName": "mychannel",
+        "targetOrganizations": [
+          {
+            "CORE_PEER_LOCALMSPID": "Org1MSP",
+            "CORE_PEER_ADDRESS": "host.docker.internal:7051",
+            "CORE_PEER_MSPCONFIG_PATH": "/opt/cacti/satp-hermes/fabric-bridge/crypto/org1/admin/msp",
+            "CORE_PEER_TLS_ROOTCERT_PATH": "/opt/cacti/satp-hermes/fabric-bridge/crypto/org1/peer/tls-ca.crt",
+            "ORDERER_TLS_ROOTCERT_PATH": "/opt/cacti/satp-hermes/fabric-bridge/crypto/orderer/tls-ca.crt"
+          },
+          {
+            "CORE_PEER_LOCALMSPID": "Org2MSP",
+            "CORE_PEER_ADDRESS": "host.docker.internal:9051",
+            "CORE_PEER_MSPCONFIG_PATH": "/opt/cacti/satp-hermes/fabric-bridge/crypto/org2/admin/msp",
+            "CORE_PEER_TLS_ROOTCERT_PATH": "/opt/cacti/satp-hermes/fabric-bridge/crypto/org2/peer/tls-ca.crt",
+            "ORDERER_TLS_ROOTCERT_PATH": "/opt/cacti/satp-hermes/fabric-bridge/crypto/orderer/tls-ca.crt"
+          }
+        ],
+        "caFilePath": "/opt/cacti/satp-hermes/fabric-bridge/crypto/org1/ca/ca-cert.pem",
+        "coreYamlFilePath": "/opt/cacti/satp-hermes/fabric-bridge/core.yaml",
+        "ccSequence": 1,
+        "orderer": "host.docker.internal:7050",
+        "ordererTLSHostnameOverride": "orderer.example.com",
+        "connTimeout": 60,
+        "mspId": "Org1MSP",
+        "wrapperContractName": "dpp",
+        "leafId": "dpp-fabric-leaf",
+        "keyPair": {
+          "publicKey": "0302e5310a75ea540587a4e504e1948da07bdb175742c079e76165fa5cd1f9408631",
+          "privateKey": "0x9ea5385d4faef03a310e6a5b360299c7f47518623f580cbd03ed0f48f48a0891"
+        },
+        "claimFormats": [
+          1
+        ]
+      }
+    ]
+  },
+  "keyPair": {
+    "privateKey": "9ea5385d4faef03a310e6a5b360299c7f47518623f580cbd03ed0f48f48a0891",
+    "publicKey": "02e5310a75ea540587a4e504e1948da07bdb175742c079e76165fa5cd1f9408631"
+  },
+  "enableCrashRecovery": false,
+  "ontologyPath": "/opt/cacti/satp-hermes/ontologies"
+}

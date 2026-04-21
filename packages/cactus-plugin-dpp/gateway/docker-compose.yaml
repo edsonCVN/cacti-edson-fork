@@ -1,4 +1,9 @@
 services:
+  # Gateways 1 and 2 connect to EVM chains on the host; gateway-3 connects to
+  # the Fabric test-network on the host. Each gateway gets an OTel collector
+  # sidecar sharing its network namespace so the hardcoded `localhost:4318`
+  # telemetry endpoint resolves inside the container.
+
   satp-hermes-gateway-1:
     image: tomassilva2187/satp-gateway:2026-01-18-1958
     platform: linux/amd64
@@ -7,11 +12,19 @@ services:
       - ./logs/gateway-1:/opt/cacti/satp-hermes/logs
       - ../contracts/ontologies/:/opt/cacti/satp-hermes/ontologies/
     ports:
-      - 3010:3010/tcp # SERVER_PORT
-      - 3011:3011/tcp # CLIENT_PORT
-      - 4010:4010/tcp # OAPI_PORT
+      - 3010:3010/tcp
+      - 3011:3011/tcp
+      - 4010:4010/tcp
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
+  otel-sidecar-1:
+    image: otel/opentelemetry-collector-contrib:0.103.0
+    command: ["--config=/etc/otel-config.yaml"]
+    volumes:
+      - ./otel-config.yaml:/etc/otel-config.yaml:ro
+    network_mode: "service:satp-hermes-gateway-1"
+    depends_on: [satp-hermes-gateway-1]
 
   satp-hermes-gateway-2:
     image: tomassilva2187/satp-gateway:2026-01-18-1958
@@ -21,8 +34,39 @@ services:
       - ./logs/gateway-2:/opt/cacti/satp-hermes/logs
       - ../contracts/ontologies/:/opt/cacti/satp-hermes/ontologies/
     ports:
-      - 3110:3010/tcp # SERVER_PORT
-      - 3111:3011/tcp # CLIENT_PORT
-      - 4110:4010/tcp # OAPI_PORT
+      - 3110:3010/tcp
+      - 3111:3011/tcp
+      - 4110:4010/tcp
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
+  otel-sidecar-2:
+    image: otel/opentelemetry-collector-contrib:0.103.0
+    command: ["--config=/etc/otel-config.yaml"]
+    volumes:
+      - ./otel-config.yaml:/etc/otel-config.yaml:ro
+    network_mode: "service:satp-hermes-gateway-2"
+    depends_on: [satp-hermes-gateway-2]
+
+  satp-hermes-gateway-3:
+    image: tomassilva2187/satp-gateway:2026-01-18-1958
+    platform: linux/amd64
+    volumes:
+      - ./config/gateway-3-config.json:/opt/cacti/satp-hermes/config/config.json
+      - ./logs/gateway-3:/opt/cacti/satp-hermes/logs
+      - ../contracts/ontologies/:/opt/cacti/satp-hermes/ontologies/
+      - ./fabric-bridge:/opt/cacti/satp-hermes/fabric-bridge:ro
+    ports:
+      - 3210:3010/tcp
+      - 3211:3011/tcp
+      - 4210:4010/tcp
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  otel-sidecar-3:
+    image: otel/opentelemetry-collector-contrib:0.103.0
+    command: ["--config=/etc/otel-config.yaml"]
+    volumes:
+      - ./otel-config.yaml:/etc/otel-config.yaml:ro
+    network_mode: "service:satp-hermes-gateway-3"
+    depends_on: [satp-hermes-gateway-3]

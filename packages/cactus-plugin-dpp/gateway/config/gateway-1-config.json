@@ -52,6 +52,32 @@
         "signingAlgorithm": "SECP256K1",
         "pubKey": "024c0cf54f92d23dbb3d409a8047aa2a44abcb911767d3516b19fd94c2358dec65"
       }
+    },
+    {
+      "id": "dpp-gateway-3",
+      "name": "DPPGateway",
+      "version": [
+        {
+          "Core": "v02",
+          "Architecture": "v02",
+          "Crash": "v02"
+        }
+      ],
+      "connectedDLTs": [
+        {
+          "id": "FabricLedgerTestNetwork",
+          "ledgerType": "FABRIC_2"
+        }
+      ],
+      "proofID": "dppProofID3",
+      "address": "http://satp-hermes-gateway-3",
+      "gatewayClientPort": 3011,
+      "gatewayServerPort": 3010,
+      "gatewayOapiPort": 4010,
+      "identificationCredential": {
+        "signingAlgorithm": "SECP256K1",
+        "pubKey": "02e5310a75ea540587a4e504e1948da07bdb175742c079e76165fa5cd1f9408631"
+      }
     }
   ],
   "environment": "development",

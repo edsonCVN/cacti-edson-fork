@@ -1,0 +1,35 @@
+{
+  "name": "DPP-FABRIC",
+  "id": "DPP-FABRIC-HLF2",
+  "type": "FABRIC_2",
+  "contract": "base64",
+  "ontology": {
+    "lock": [{
+      "functionSignature": "lock",
+      "variables": ["owner", "bridge", "unique_descriptor"]
+    }],
+    "unlock": [{
+      "functionSignature": "unlock",
+      "variables": ["bridge", "owner", "unique_descriptor"]
+    }],
+    "mint": [{
+      "functionSignature": "mint",
+      "variables": ["bridge", "unique_descriptor"]
+    }],
+    "burn": [{
+      "functionSignature": "burn",
+      "variables": ["unique_descriptor"]
+    }],
+    "assign": [{
+      "functionSignature": "assign",
+      "variables": ["receiver", "unique_descriptor"]
+    }],
+    "checkPermission": [{
+      "functionSignature": "hasBridgeRole",
+      "variables": ["bridge"]
+    }]
+  },
+  "bytecode": "",
+  "signature": "",
+  "hash": ""
+}

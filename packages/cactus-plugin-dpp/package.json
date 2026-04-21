@@ -56,13 +56,18 @@
         "webpack:dev:web": "webpack --env=dev --target=web --config ../../webpack.config.js"
     },
     "dependencies": {
+        "@grpc/grpc-js": "1.10.11",
         "@hyperledger/cactus-common": "2.1.0",
         "@hyperledger/cactus-core": "2.1.0",
         "@hyperledger/cactus-core-api": "2.1.0",
+        "@hyperledger/cactus-plugin-ledger-connector-fabric": "2.1.0",
+        "@hyperledger/fabric-gateway": "1.7.0",
         "axios": "1.8.4",
+        "ethers": "5.7.2",
         "express": "5.1.0",
         "http-proxy-middleware": "3.0.5",
-        "minimist": "1.2.8"
+        "minimist": "1.2.8",
+        "solc": "0.8.24"
     },
     "devDependencies": {
         "@hyperledger/cactus-test-tooling": "2.1.0",
