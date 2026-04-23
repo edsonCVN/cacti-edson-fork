@@ -119,6 +119,10 @@ async function main() {
   await contract.deployed();
   console.log(`✔ Contract deployed at: ${contract.address}\n`);
 
+  // Grant BRIDGE_ROLE to the deployer so it can exercise the lock path during
+  // crossChainTransferDPP (test-only; in production SATPWrapper holds the role).
+  await (await contract.grantBridgeRole(await deployer.getAddress())).wait();
+
   // ── Initialize plugin ──
   const plugin = new EVMDPPLeaf({
     network: "EVM",

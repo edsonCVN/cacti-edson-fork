@@ -4,6 +4,7 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "./IDigitalProductPassport.sol";
 
 /// @notice Thrown when an address lacks the required permission.
@@ -22,10 +23,14 @@ error noPermission(address adr);
 contract DigitalProductPassport is
   ERC721,
   AccessControl,
+  ReentrancyGuard,
   IDigitalProductPassport
 {
-  /// @dev Auto-incrementing counter for token IDs.
-  uint256 private _nextTokenId;
+  /// @dev Auto-incrementing counter for token IDs (starts at 1 so id 0 is reserved).
+  uint256 private _nextTokenId = 1;
+
+  /// @dev Maximum number of children accepted in aggregate/disaggregate to bound gas.
+  uint256 public constant MAX_BATCH_SIZE = 100;
 
   // ============================================================
   //  Role Definitions
@@ -157,7 +162,10 @@ contract DigitalProductPassport is
     string memory productName,
     string memory creationDate,
     string memory metadataURI
-  ) public onlyRole(FARMER_ROLE) returns (uint256) {
+  ) public onlyRole(FARMER_ROLE) nonReentrant returns (uint256) {
+    require(to != address(0), "Invalid recipient");
+    require(bytes(productName).length > 0, "Empty productName");
+    require(bytes(creationDate).length > 0, "Empty creationDate");
     uint256 tokenId = _nextTokenId++;
     string memory generatedProductId = string(
       abi.encodePacked("PROD-", Strings.toString(tokenId))
@@ -298,7 +306,11 @@ contract DigitalProductPassport is
     string memory productName,
     string memory metadataURI,
     uint256[] memory childTokenIds
-  ) public onlyRole(PROCESSOR_ROLE) returns (uint256) {
+  ) public onlyRole(PROCESSOR_ROLE) nonReentrant returns (uint256) {
+    require(to != address(0), "Invalid recipient");
+    require(bytes(productName).length > 0, "Empty productName");
+    require(childTokenIds.length >= 2, "Need at least 2 children");
+    require(childTokenIds.length <= MAX_BATCH_SIZE, "Batch too large");
     uint256 parentTokenId = _nextTokenId++;
 
     string memory generatedProductId = string(
@@ -357,9 +369,11 @@ contract DigitalProductPassport is
     uint256 tokenId,
     address to,
     uint256 count
-  ) public notRevoked(tokenId) returns (uint256[] memory) {
+  ) public notRevoked(tokenId) nonReentrant returns (uint256[] memory) {
     require(_ownerOf(tokenId) != address(0), "ERC721: invalid token ID");
+    require(to != address(0), "Invalid recipient");
     require(count >= 2, "Count must be at least 2");
+    require(count <= MAX_BATCH_SIZE, "Batch too large");
     require(
       hasRole(DEFAULT_ADMIN_ROLE, msg.sender) ||
       hasRole(FARMER_ROLE, msg.sender) ||
@@ -367,38 +381,38 @@ contract DigitalProductPassport is
       "Caller lacks disaggregate permission"
     );
 
-    DPPData storage origin = _dppData[tokenId];
+    DPPData memory originSnapshot = _dppData[tokenId];
 
-    // Build a lightweight metadata reference instead of duplicating the
-    // full JSON blob for every child - the backend resolves the original
-    // metadata via the origin token ID embedded in the reference string.
     string memory metadataRef = string(
       abi.encodePacked("split-from:", Strings.toString(tokenId))
     );
 
     uint256[] memory newTokenIds = new uint256[](count);
 
+    // Effects: pre-allocate IDs, write state, record history BEFORE any
+    // external call (strict CEI - prevents reentrancy via onERC721Received).
     for (uint256 i = 0; i < count; i++) {
       uint256 newId = _nextTokenId++;
       newTokenIds[i] = newId;
-
       _dppData[newId] = DPPData({
         productId: string(abi.encodePacked("SPLIT-", Strings.toString(newId))),
-        productName: origin.productName,
+        productName: originSnapshot.productName,
         state: DPPState.CREATED,
-        creationDate: origin.creationDate,
+        creationDate: originSnapshot.creationDate,
         additionalMetadataURI: metadataRef
       });
-
       _addToHistory(newId, "Disaggregate", msg.sender);
-      _safeMint(to, newId);
     }
-
-    // Revoke the origin DPP (keep it on-chain so children can resolve
-    // their "split-from:" metadata reference via getDPPData).
     _dppData[tokenId].state = DPPState.REVOKED;
     _addToHistory(tokenId, "Disaggregated", msg.sender);
     emit DPPDisaggregated(tokenId, msg.sender, newTokenIds);
+
+    // Interactions: mint tokens last. All internal state is finalised and
+    // nonReentrant blocks re-entry, so onERC721Received cannot manipulate
+    // the contract mid-operation.
+    for (uint256 i = 0; i < count; i++) {
+      _safeMint(to, newTokenIds[i]);
+    }
 
     return newTokenIds;
   }
@@ -466,12 +480,14 @@ contract DigitalProductPassport is
     string memory metadataURI,
     string[] memory certs,
     string[] memory historyEntries
-  ) public {
+  ) public nonReentrant {
     require(_ownerOf(tokenId) != address(0), "ERC721: invalid token ID");
     require(
       hasRole(DEFAULT_ADMIN_ROLE, msg.sender) || hasRole(GATEWAY_ROLE, msg.sender),
       "Caller lacks import permission"
     );
+    require(certs.length <= MAX_BATCH_SIZE, "Too many certifications");
+    require(historyEntries.length <= MAX_BATCH_SIZE * 10, "History too large");
 
     _dppData[tokenId].productName = productName;
     _dppData[tokenId].creationDate = creationDate;
@@ -599,8 +615,9 @@ contract DigitalProductPassport is
     address from,
     address to,
     uint256 uniqueDescriptor
-  ) external returns (bool) {
+  ) external onlyRole(BRIDGE_ROLE) nonReentrant returns (bool) {
     require(_dppData[uniqueDescriptor].state != DPPState.REVOKED, "DPP is revoked");
+    require(_dppData[uniqueDescriptor].state != DPPState.LOCKED_CROSSCHAIN, "Already locked");
     // Save the current state so unlock() can restore it if the transfer is rolled back.
     _preLockState[uniqueDescriptor] = _dppData[uniqueDescriptor].state;
     _dppData[uniqueDescriptor].state = DPPState.LOCKED_CROSSCHAIN;
@@ -625,7 +642,7 @@ contract DigitalProductPassport is
     address from,
     address to,
     uint256 uniqueDescriptor
-  ) external returns (bool) {
+  ) external onlyRole(BRIDGE_ROLE) nonReentrant returns (bool) {
     DPPState restored = _preLockState[uniqueDescriptor];
     // Guard against the (unexpected) case where unlock is called without a
     // prior lock: treat missing or locked pre-state as a fresh DPP.
@@ -666,7 +683,8 @@ contract DigitalProductPassport is
   function mint(
     address account,
     uint256 uniqueDescriptor
-  ) external onlyRole(BRIDGE_ROLE) returns (bool) {
+  ) external onlyRole(BRIDGE_ROLE) nonReentrant returns (bool) {
+    require(account != address(0), "Invalid account");
     if (uniqueDescriptor >= _nextTokenId) {
       _nextTokenId = uniqueDescriptor + 1;
     }

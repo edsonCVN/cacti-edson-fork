@@ -131,6 +131,14 @@ async function main() {
   await grantTx.wait();
   pass(`BRIDGE_ROLE granted to contract (self-custody for lock tests)`);
 
+  // Grant BRIDGE_ROLE to the deployer as well: the test scripts (and the
+  // crossChainTransferDPP fallback path in evm-dpp-leaf) invoke lock/unlock
+  // from the deployer signer for single-chain testing. In production the
+  // bridge role is held exclusively by the SATPWrapper address.
+  const grantDeployerTx = await (contract as any).grantBridgeRole(deployerAddr);
+  await grantDeployerTx.wait();
+  pass(`BRIDGE_ROLE granted to deployer (test-only)`);
+
   // ── Initialise plugin ───────────────────────────────────────────────────────
   const plugin = new EVMDPPLeaf({
     network: "EVM",
