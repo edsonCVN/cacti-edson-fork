@@ -426,6 +426,7 @@ contract DigitalProductPassport is
    */
   function transferDPP(uint256 tokenId, address newOwner) public notRevoked(tokenId) {
     require(_ownerOf(tokenId) != address(0), "ERC721: invalid token ID");
+    require(_dppData[tokenId].state != DPPState.LOCKED_CROSSCHAIN, "DPP is locked");
     require(ownerOf(tokenId) == msg.sender || hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Caller is not owner nor admin");
     require(newOwner != address(0), "Cannot transfer to zero address");
 
