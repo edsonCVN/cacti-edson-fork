@@ -8,7 +8,7 @@ A Digital Product Passport is an ERC-721 NFT that carries structured metadata ab
 
 ### Key Features
 
-- **Role-Based Access Control (RBAC)** - Seven roles (`FARMER`, `PROCESSOR`, `TRANSPORTER`, `RETAILER`, `GATEWAY`, `OWNER`, `ADMIN`) enforced on-chain via OpenZeppelin `AccessControl`
+- **Role-Based Access Control (RBAC)** - Eight on-chain roles (seven application-specific - `FARMER`, `PROCESSOR`, `TRANSPORTER`, `RETAILER`, `GATEWAY`, `OWNER`, `BRIDGE` - plus `DEFAULT_ADMIN_ROLE`) enforced on-chain via OpenZeppelin `AccessControl`
 - **Structured On-Chain History** - Every lifecycle event is stored as JSON with actor address and block timestamp
 - **DPP Aggregation** - Combine multiple child DPPs into a parent lot; children are revoked (`notRevoked` modifier) and their metadata/history is merged
 - **DPP Disaggregation** - Split a single DPP into N independent child DPPs; the origin is revoked and each child inherits the original metadata and certifications
@@ -16,7 +16,7 @@ A Digital Product Passport is an ERC-721 NFT that carries structured metadata ab
 - **Ontology-Driven Gateway** - An ontology JSON file maps SATP protocol phases to the contract's Solidity function signatures, following the SATP Case 2 (EVM NFA transfer) pattern
 - **Dual-mode API Gateway** - Shares the same contract with the SATP gateways when `deployed-addresses.json` exists; falls back to standalone deploy otherwise
 - **Express API Gateway** - REST API that dispatches transactions with role-aware signer selection, including a `/cross-chain-transfer` proxy to SATP gateway-1
-- **IPFS Integration** - Product images and full ERC-721 metadata JSON are pinned to IPFS via Pinata at mint time. The on-chain record stores both the IPFS CID and the inline JSON; IPFS serves as an immutable snapshot of the original metadata while the on-chain JSON remains the source of truth for current state. Aggregated lots inherit the first child's image and metadata CID
+- **IPFS Integration** - Product images and full ERC-721 metadata JSON are pinned to IPFS via Pinata at mint time by the frontend (server-side route, JWT never exposed); the backend receives only the resulting CIDs. The on-chain record stores both the IPFS CID and the inline JSON; IPFS serves as an immutable snapshot of the original metadata while the on-chain JSON remains the source of truth for current state. Aggregated lots inherit the first child's image and metadata CID
 
 ## Architecture
 
@@ -178,9 +178,19 @@ These match the exact signatures expected by the SATPWrapper bridge contract dep
 
 ### Prerequisites
 
-- Node.js >= 18
+- Node.js >= 20 (22 LTS recommended; required by Hardhat 3)
+- [Yarn 4](https://yarnpkg.com) (the repository uses Yarn workspaces with `nodeLinker: pnpm`)
 - [Hardhat node](https://hardhat.org) or [Anvil](https://book.getfoundry.sh/anvil/) for local EVM blockchain
 - Docker (for SATP Hermes Gateway containers)
+
+### Install dependencies
+
+This package is part of the Hyperledger Cacti Yarn workspace. Install all workspace dependencies from the **repository root** before running anything in this package:
+
+```bash
+cd <path-to>/cacti-edson-fork
+yarn install
+```
 
 ---
 
@@ -192,10 +202,10 @@ Compile, deploy, and start the REST API in one command. No SATP gateways needed.
 cd packages/cactus-plugin-dpp
 
 # Terminal 1 - local blockchain
-anvil  # or: npx hardhat node --port 8545
+anvil  # or: yarn hardhat node --port 8545
 
 # Terminal 2 - start the API gateway (deploys the contract automatically)
-npx ts-node --project tsconfig.hardhat.json scripts/launch-api.ts
+yarn ts-node --project tsconfig.hardhat.json scripts/launch-api.ts
 ```
 
 `launch-api.ts` will:
@@ -215,13 +225,13 @@ All services share the **same contract addresses** via `gateway/deployed-address
 cd packages/cactus-plugin-dpp
 
 # Terminal 1 - chain 1 (source)
-npx hardhat node --port 8545
+yarn hardhat node --port 8545
 
 # Terminal 2 - chain 2 (destination)
-npx hardhat node --port 8546
+yarn hardhat node --port 8546
 
 # Terminal 3 - compile + deploy to both chains
-npx hardhat compile
+yarn hardhat compile
 node scripts/deploy-dpp.js
 ```
 
@@ -246,10 +256,10 @@ The `contracts/ontologies/` directory is mounted automatically into both contain
 
 ```bash
 # Terminal 5 - API gateway for chain 1 (reads deployed-addresses.json, reuses existing contracts)
-npx ts-node --project tsconfig.hardhat.json scripts/launch-api.ts
+yarn ts-node --project tsconfig.hardhat.json scripts/launch-api.ts
 
 # Terminal 6 (optional) - API gateway for chain 2 (to view received DPPs)
-npx ts-node --project tsconfig.hardhat.json scripts/launch-api-chain2.ts
+yarn ts-node --project tsconfig.hardhat.json scripts/launch-api-chain2.ts
 ```
 
 Because `gateway/deployed-addresses.json` already exists, `launch-api.ts` will skip deployment and connect to the same contracts that the SATP gateways use. Local lifecycle operations and cross-chain transfers can now happen in parallel.
@@ -315,10 +325,10 @@ Open two terminals inside `packages/cactus-plugin-dpp`:
 
 ```bash
 # Terminal 1
-npx hardhat node --port 8545
+yarn hardhat node --port 8545
 
 # Terminal 2
-npx hardhat node --port 8546
+yarn hardhat node --port 8546
 ```
 
 Wait until both nodes print their account list and `Started HTTP and WebSocket JSON-RPC server`.
@@ -327,7 +337,7 @@ Wait until both nodes print their account list and `Started HTTP and WebSocket J
 
 ```bash
 # Terminal 3
-npx hardhat compile
+yarn hardhat compile
 node scripts/deploy-dpp.js
 ```
 
@@ -383,7 +393,7 @@ curl http://localhost:4010/api/v1/@hyperledger/cactus-plugin-satp-hermes/get-int
 
 ```bash
 # Terminal 5
-npx ts-node --project tsconfig.hardhat.json scripts/launch-api.ts
+yarn ts-node --project tsconfig.hardhat.json scripts/launch-api.ts
 ```
 
 Because `gateway/deployed-addresses.json` already exists, the API gateway will **not** redeploy - it connects to the same contracts the SATP gateways use:
@@ -493,13 +503,13 @@ This means any DPP - including ones created after the initial deployment - can b
 
 ```bash
 # End-to-end DPP lifecycle + SATP bridge functions (requires EVM local node on port 8545)
-npx ts-node --project tsconfig.hardhat.json scripts/test-satp-dpp.ts
+yarn ts-node --project tsconfig.hardhat.json scripts/test-satp-dpp.ts
 
 # Cross-chain transfer test (lock mechanism, single chain)
-npx ts-node --project tsconfig.hardhat.json scripts/test-crosschain-polygon.ts
+yarn ts-node --project tsconfig.hardhat.json scripts/test-crosschain-polygon.ts
 
 # Unit tests
-npx jest
+yarn jest
 ```
 
 ## API Endpoints
