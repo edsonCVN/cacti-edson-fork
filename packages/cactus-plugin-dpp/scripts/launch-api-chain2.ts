@@ -219,6 +219,50 @@ async function main() {
     catch (e: any) { res.status(500).json({ error: e.message }); }
   });
 
+  // Local DPP creation on chain 2 (mirrors launch-api.ts)
+  app.post(`${base}/create`, async (req, res) => {
+    try { res.json(await leafFor(req.body.owner).createDPP(req.body)); }
+    catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  // Local ownership transfer on chain 2
+  app.post(`${base}/transfer`, async (req, res) => {
+    try { res.json(await leafFor(req.body.from).transferDPP({ dppId: req.body.dppId, newOwner: req.body.to })); }
+    catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  app.post(`${base}/aggregate`, async (req, res) => {
+    try { res.json(await leafFor(req.body.handlerAddress).aggregateDPPtoBox(req.body)); }
+    catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  app.post(`${base}/disaggregate`, async (req, res) => {
+    try { res.json(await leafFor(req.body.handlerAddress).disaggregateDPP(req.body)); }
+    catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  // Full DPP audit on chain 2
+  app.get(`${base}/audit`, async (_req, res) => {
+    try {
+      const passports = await leaf.getAllPassportsForAudit();
+      const auditEntries = await Promise.all(
+        passports.map(async (p: any) => {
+          const tokenId = String(p.tokenId ?? p.id);
+          let history: any[] = [];
+          try { history = await leaf.getRawHistory(tokenId); } catch { /* skip */ }
+          return { tokenId, name: p.name, owner: p.ownerAddress, status: p.status, history };
+        }),
+      );
+      res.json({
+        generatedAt: new Date().toISOString(),
+        totalPassports: auditEntries.length,
+        passports: auditEntries,
+      });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   // ── Cross-chain transfer (chain 2 -> chain 1 via SATP gateway-2) ─────────────
   app.post(`${base}/cross-chain-transfer`, async (req, res) => {
     try {
